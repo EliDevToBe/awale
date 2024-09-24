@@ -133,11 +133,6 @@ export class Awale {
 
     #saw(slot: Slot, player: Player): boolean {
 
-        // if (!this.#isTurnPlayer(player)) {
-        //     console.error(`It's not your turn ${player.getName()}!`);
-        //     return false
-        // }
-
         console.info(`Player ${player.getName()} saw on slot ${slot}.`)
 
         // check if authorized board side
@@ -162,7 +157,6 @@ export class Awale {
 
             const key = sawOrder[i % sawOrder.length];
             let value = this.#gameBoard.get(key)!;
-            // if (value == undefined) continue
 
             this.#gameBoard.set(key, value += 1);
         }
@@ -193,7 +187,7 @@ export class Awale {
         for (const slot of harvestOrder) {
             if (this.#gameBoard.get(slot)! > 3) {
                 console.info(`Stopped harvesting at ${slot}, holding ${this.#gameBoard.get(slot)} seeds.`)
-                return
+                break;
             }
 
             player.addPoints(this.#gameBoard.get(slot) ?? 0);
