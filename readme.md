@@ -1,4 +1,4 @@
-# Wanna play Awele ?
+# Wanna play Awale ?
 
 ## Initialize
 
@@ -12,7 +12,7 @@ npm install
 
 ## Run
 
-Start playing the game.
+Start playing the game.  
 Enjoy !
 
 ```bash
