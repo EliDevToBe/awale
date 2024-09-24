@@ -62,6 +62,8 @@ export class Awale {
         this.#players.forEach((player) => {
             player.welcome();
         })
+
+        this.#menu("HELP");
         this.#display();
 
         while (true) {
@@ -69,13 +71,17 @@ export class Awale {
             const playerInput: Slot = await this.#playerMove();
             const currentPlayer = this.#getCurrentPlayer();
 
+            if (this.#menu(playerInput)) {
+                continue;
+            };
+
             if (!currentPlayer.getBoard()?.includes(playerInput)) {
-                console.error(`'${playerInput}' -> is not a valid slot. `)
+                console.error(`'${playerInput}' -> is not a valid entry. `);
+                console.info()
                 continue;
             }
 
             this.#saw(playerInput, currentPlayer);
-            // console.log("Ton INPUT c'est:", playerInput)
 
             this.#display();
 
@@ -92,7 +98,7 @@ export class Awale {
         process.exit();
     }
 
-    async #playerMove() {
+    #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
         console.info(`It's your turn ${currentPlayer.getName()}!`);
 
@@ -103,6 +109,34 @@ export class Awale {
                 resolve(answer.trim().toUpperCase());
             });
         }) as unknown as Slot
+    }
+
+    #menu(input: string): boolean {
+
+        if (input === "Q") {
+            console.info("Exiting game. Hope you had fun!");
+            process.exit();
+        }
+
+        if (input === "HELP") {
+            console.info();
+            console.info("- --===== Awale Rules =====-- -");
+            console.info();
+            console.info("¤ Each player chooses a non empty slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
+            console.info();
+            console.info("¤ You have to choose a slot that belongs to you: \r\n - Upper Player: A-B-C-D-E-F \r\n - Lower Player: G-H-I-J-K-L");
+            console.info();
+            console.info("¤ When the finishing slot of the distribution cycle has 1-2 seed \r\n and his in the adversary board, you collect all the seeds in a \r\n clockwise pattern until finding a slot of at least 4 seeds.")
+            console.info();
+            console.info("¤ At anytime, type 'Q' to exit the game.")
+            console.info();
+            console.info("¤ Or type 'HELP' to get this prompt.")
+            console.info();
+
+            return true
+        }
+
+        return false
     }
 
     #display(): void {
@@ -117,6 +151,7 @@ export class Awale {
         console.info(...lowerState);
         console.info(...this.#sides.lowerBoard);
         console.info("===========");
+        console.info()
     }
 
     #isGameOver(): boolean {
@@ -134,13 +169,6 @@ export class Awale {
     #saw(slot: Slot, player: Player): boolean {
 
         console.info(`Player ${player.getName()} saw on slot ${slot}.`)
-
-        // check if authorized board side
-        if (!player.getBoard()?.includes(slot)) {
-            console.error(`${slot} is not your on board side ${player.getName()}!`);
-            console.error(`Available slots are ${player.getBoard()?.join("/")}.`);
-            return false
-        }
 
         let seedsNumber = this.#gameBoard.get(slot);
 
@@ -175,6 +203,7 @@ export class Awale {
 
         this.#turnCount++;
 
+        console.info();
         return true
     }
 
