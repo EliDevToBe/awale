@@ -8,18 +8,18 @@ const rl = readline.createInterface({
 type Slot = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L";
 type Action = "saw" | "harvest";
 
-class Awale {
+export class Awale {
 
     #gameBoard: Map<string, number> = new Map([
         ["A", 4],
         ["B", 4],
-        ["C", 1],
+        ["C", 4],
         ["D", 4],
         ["E", 4],
         ["F", 4],
         ["G", 4],
         ["H", 4],
-        ["I", 1],
+        ["I", 4],
         ["J", 4],
         ["K", 4],
         ["L", 4]
@@ -30,28 +30,82 @@ class Awale {
         lowerBoard: ["G", "H", "I", "J", "K", "L"]
     }
 
+    #players: Map<string, Player>
+
     #turnCount = 0;
     #turnArray: string[];
 
     constructor(upperPlayer: Player, lowerPlayer: Player) {
+
+        // Setting each player with their side of gameboard
         upperPlayer.setBoard(this.#sides.upperBoard);
         lowerPlayer.setBoard(this.#sides.lowerBoard);
 
-        let array = [upperPlayer.getName(), lowerPlayer.getName()];
+        this.#players = new Map([
+            [upperPlayer.getName(), upperPlayer],
+            [lowerPlayer.getName(), lowerPlayer]
+        ]);
 
         // Random attribution of starting player
+        let array = [upperPlayer.getName(), lowerPlayer.getName()];
+
         const rndNum = Math.floor(Math.random() * 10);
         if (rndNum % 2 == 0) {
             array = array.reverse();
         }
         this.#turnArray = array;
-
-        console.info(`It's your turn ${this.#turnArray[0]}!`);
-
-        this.display();
     }
 
-    public display(): void {
+    public async play() {
+
+        // Welcome and starting promt
+        this.#players.forEach((player) => {
+            player.welcome();
+        })
+        this.#display();
+
+        while (true) {
+
+            const playerInput: Slot = await this.#playerMove();
+            const currentPlayer = this.#getCurrentPlayer();
+
+            if (!currentPlayer.getBoard()?.includes(playerInput)) {
+                console.error(`'${playerInput}' -> is not a valid slot. `)
+                continue;
+            }
+
+            this.#saw(playerInput, currentPlayer);
+            // console.log("Ton INPUT c'est:", playerInput)
+
+            this.#display();
+
+            if (this.#isGameOver()) {
+                break
+            }
+        }
+
+        this.#players.forEach((player) => {
+            player.displayScore();
+        })
+
+        rl.close();
+        process.exit();
+    }
+
+    async #playerMove() {
+        const currentPlayer = this.#getCurrentPlayer();
+        console.info(`It's your turn ${currentPlayer.getName()}!`);
+
+        const playerSlots = currentPlayer.getBoard();
+
+        return new Promise((resolve, reject) => {
+            rl.question(`Choose a slot to saw (${playerSlots?.join("-")}): `, (answer) => {
+                resolve(answer.trim().toUpperCase());
+            });
+        }) as unknown as Slot
+    }
+
+    #display(): void {
         // Affichage plateau dans console
 
         const upperState = this.#sides.upperBoard.map((el) => this.#gameBoard.get(el));
@@ -65,24 +119,24 @@ class Awale {
         console.info("===========");
     }
 
-    public isEmpty(): boolean {
+    #isGameOver(): boolean {
         // le plateau est-il vide ?
         for (const [key, _] of this.#gameBoard) {
-            if (key) {
-                console.info("Is the board empty?", false);
+            if (this.#gameBoard.get(key) != 0) {
                 return false
             }
         }
-        console.info("Is the board empty?", true);
+        console.info("G A M E  O V E R");
+        console.info("The board is finally empty!");
         return true
     }
 
-    public saw(slot: Slot, player: Player): void {
+    #saw(slot: Slot, player: Player): boolean {
 
-        if (!this.#isTurnPlayer(player)) {
-            console.error(`It's not your turn ${player.getName()}!`);
-            return
-        }
+        // if (!this.#isTurnPlayer(player)) {
+        //     console.error(`It's not your turn ${player.getName()}!`);
+        //     return false
+        // }
 
         console.info(`Player ${player.getName()} saw on slot ${slot}.`)
 
@@ -90,14 +144,14 @@ class Awale {
         if (!player.getBoard()?.includes(slot)) {
             console.error(`${slot} is not your on board side ${player.getName()}!`);
             console.error(`Available slots are ${player.getBoard()?.join("/")}.`);
-            return
+            return false
         }
 
         let seedsNumber = this.#gameBoard.get(slot);
 
         if (!seedsNumber) {
             console.error("It's an empty slot!");
-            return
+            return false
         }
         this.#gameBoard.set(slot, 0);
 
@@ -125,9 +179,9 @@ class Awale {
             player.displayScore();
         }
 
-        // Final display after end of turn
-        this.display();
-        this.#turnCount++
+        this.#turnCount++;
+
+        return true
     }
 
     #harvest(slot: Slot, player: Player): void {
@@ -147,11 +201,9 @@ class Awale {
         }
     }
 
-    #isTurnPlayer(player: Player) {
-        if (this.#turnArray[this.#turnCount % 2] === player.getName()) {
-            return true
-        }
-        return false
+    #getCurrentPlayer(): Player {
+        const playerName = this.#turnArray[this.#turnCount % 2];
+        return this.#players.get(playerName)!;
     }
 
     #getTurnOrderFrom(slot: Slot, action: Action): Slot[] {
@@ -167,23 +219,20 @@ class Awale {
         }
     }
 
-    #resetGame(): void {
-        for (const [key, _] of this.#gameBoard) {
-            this.#gameBoard.set(key, 4);
-        }
-        console.info("Game has been reseted");
-    }
 }
 
-class Player {
+export class Player {
 
     #name: string;
     #score: number = 0;
     #board: Slot[] | null = null;
 
     constructor(name: string) {
-        console.info(`Welcome ${name}!`);
         this.#name = name;
+    }
+
+    public welcome(): void {
+        console.info(`Welcome ${this.#name}!`);
     }
 
     public addPoints(num: number) {
@@ -205,20 +254,3 @@ class Player {
         return this.#board;
     }
 }
-
-const laure = new Player("Laure");
-const patrick = new Player("Patrick");
-
-const game = new Awale(laure, patrick);
-
-// game.display();
-game.saw("L", patrick);
-game.saw("B", laure);
-// game.display();
-// game.saw("C", laure);
-// game.saw("F")
-// game.display();
-// game.saw("E")
-
-
-// game.display();
