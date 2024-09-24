@@ -1,4 +1,4 @@
-import { Awale, Player } from "./awele";
+import { Awale, Player } from "./awale";
 
 const laure = new Player("Laure");
 const patrick = new Player("Patrick");
