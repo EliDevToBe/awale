@@ -13,6 +13,7 @@ npm install
 ## Run
 
 Start playing the game.
+Enjoy !
 
 ```bash
 pnpm run start
@@ -22,5 +23,5 @@ npm run start
 
 ## Roadmap
 
-- Add the choice of player name *inside* Awale instead of initializing player class in global scope
+- Add the choice of player name **inside** Awale instead of initializing player class in global scope
 - Modify output prompst to delete previous output prompts and displays
