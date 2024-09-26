@@ -76,6 +76,12 @@ export class Awale {
                 process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
                 process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
 
+                // Check Quit command
+                if (playerInput as string === "Q") {
+                    console.info("Exiting the game. Hope you had fun!");
+                    break;
+                }
+
                 console.error(`\x1b[31m'${playerInput}\x1b[0m' -> is not a valid entry. `);
                 console.info();
                 continue;
