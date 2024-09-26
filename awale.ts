@@ -123,7 +123,6 @@ export class Awale {
 
     #rulesDisplay(): void {
         // Rules
-        console.info();
         console.info("- --===== \x1b[37mAwale Rules\x1b[0m =====-- -");
         console.info();
         console.info("\x1b[35m¤\x1b[0m Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
