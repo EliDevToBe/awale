@@ -42,18 +42,18 @@ export class Awale {
         lowerPlayer.setBoard(this.#sides.lowerBoard);
 
         this.#players = new Map([
-            [upperPlayer.getName(), upperPlayer],
-            [lowerPlayer.getName(), lowerPlayer]
+            ["upperPlayer", upperPlayer],
+            ["lowerPlayer", lowerPlayer]
         ]);
 
         // Random attribution of starting player
-        let array = [upperPlayer.getName(), lowerPlayer.getName()];
+        let roleArray = ["upperPlayer", "lowerPlayer"];
 
         const rndNum = Math.floor(Math.random() * 10);
         if (rndNum % 2 == 0) {
-            array = array.reverse();
+            roleArray = roleArray.reverse();
         }
-        this.#turnArray = array;
+        this.#turnArray = roleArray;
     }
 
     public async play() {
@@ -72,7 +72,11 @@ export class Awale {
 
             if (!currentPlayer.getBoard()?.includes(playerInput)) {
                 this.#display();
-                console.error(`'${playerInput}' -> is not a valid entry. `);
+
+                process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+                process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+
+                console.error(`\x1b[31m'${playerInput}\x1b[0m' -> is not a valid entry. `);
                 console.info();
                 continue;
             }
@@ -94,6 +98,8 @@ export class Awale {
 
     #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
+
+        console.info();
         console.info(`It's your turn ${currentPlayer.getName()}!`);
 
         const playerSlots = currentPlayer.getBoard();
@@ -118,15 +124,15 @@ export class Awale {
     #rulesDisplay(): void {
         // Rules
         console.info();
-        console.info("- --===== Awale Rules =====-- -");
+        console.info("- --===== \x1b[37mAwale Rules\x1b[0m =====-- -");
         console.info();
-        console.info("¤ Each player chooses a non empty slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
+        console.info("\x1b[35m¤\x1b[0m Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
         console.info();
-        console.info("¤ You have to choose a slot that belongs to you: \r\n - Upper Player: A-B-C-D-E-F \r\n - Lower Player: G-H-I-J-K-L");
+        console.info(`\x1b[35m¤\x1b[0m You have to choose a slot that belongs to you: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
         console.info();
-        console.info("¤ When the finishing slot of the distribution cycle has 1-2 seeds \r\n and is in the adversary board, you collect all the seeds in a \r\n clockwise pattern until finding a slot of at least 4 seeds.")
+        console.info("\x1b[35m¤\x1b[0m When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m \r\n and is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a \r\n clockwise pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m.");
         console.info();
-        console.info("¤ At anytime, type 'Q' to exit the game.")
+        console.info("\x1b[35m¤\x1b[0m At anytime, type '\x1b[31mQ\x1b[0m' to \x1b[31mexit\x1b[0m the game.");
         console.info();
         console.info();
     }
@@ -142,12 +148,13 @@ export class Awale {
         const upperState = this.#sides.upperBoard.map((el) => this.#gameBoard.get(el));
         const lowerState = this.#sides.lowerBoard.map((el) => this.#gameBoard.get(el));
 
-        console.info("== BOARD ==");
+        console.info("\x1b[37m== BOARD ==\x1b[0m");
         console.info(...this.#sides.upperBoard);
         console.info(...upperState);
         console.info(...lowerState);
         console.info(...this.#sides.lowerBoard);
-        console.info("===========");
+        console.info("\x1b[37m===========\x1b[0m");
+        console.info();
         console.info();
         console.info();
     }
@@ -170,7 +177,11 @@ export class Awale {
 
         if (!seedsNumber) {
             this.#display();
-            console.error(`${slot} is an empty slot!`);
+
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+
+            console.error(`\x1b[31m${slot}\x1b[0m is an empty slot!`);
             console.info();
 
             return false
@@ -201,11 +212,21 @@ export class Awale {
 
             this.#display();
 
-            console.info(`Player ${player.getName()} saw on slot ${slot}.`);
-            console.info(`/!\\ HARVEST TIME on slot ${lastSlotKey} /!\\`)
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+
+            console.info(
+                `Player \x1b[34m${player.getName()}\x1b[0m saw on slot \x1b[33m${slot}\x1b[0m.`
+            );
+            console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`)
         } else {
             this.#display();
-            console.info(`Player ${player.getName()} saw on slot ${slot}.`);
+
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            console.info(
+                `Player \x1b[34m${player.getName()}\x1b[0m saw on slot \x1b[33m${slot}\x1b[0m.`
+            );
         }
 
         this.#turnCount++;
@@ -230,8 +251,8 @@ export class Awale {
     }
 
     #getCurrentPlayer(): Player {
-        const playerName = this.#turnArray[this.#turnCount % 2];
-        return this.#players.get(playerName)!;
+        const playerRole = this.#turnArray[this.#turnCount % 2];
+        return this.#players.get(playerRole)!;
     }
 
     #getTurnOrderFrom(slot: Slot, action: Action): Slot[] {
@@ -256,7 +277,7 @@ export class Player {
     #board: Slot[] | null = null;
 
     constructor(name: string) {
-        this.#name = name;
+        this.#name = '\x1b[32m' + name + '\x1b[0m';
     }
 
     public welcome(): void {
@@ -268,7 +289,7 @@ export class Player {
     }
 
     public displayScore(): void {
-        console.info(`${this.#name} has ${this.#score} point${this.#score ? 's' : ''}!`);
+        console.info(`${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
     }
 
     public getName() {
