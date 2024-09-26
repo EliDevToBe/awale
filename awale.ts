@@ -215,7 +215,7 @@ export class Awale {
             process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
 
             console.info(
-                `Player \x1b[34m${player.getName()}\x1b[0m saw on slot \x1b[33m${slot}\x1b[0m.`
+                `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
             );
             console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`)
         } else {
@@ -224,7 +224,7 @@ export class Awale {
             process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
             process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
             console.info(
-                `Player \x1b[34m${player.getName()}\x1b[0m saw on slot \x1b[33m${slot}\x1b[0m.`
+                `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
             );
         }
 
@@ -240,7 +240,6 @@ export class Awale {
 
         for (const slot of harvestOrder) {
             if (this.#gameBoard.get(slot)! > 3) {
-                // console.info(`Stopped harvesting at ${slot}, holding ${this.#gameBoard.get(slot)} seeds.`)
                 break;
             }
 
