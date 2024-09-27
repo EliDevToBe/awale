@@ -7,6 +7,7 @@ const rl = readline.createInterface({
 
 type Slot = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L";
 type Action = "saw" | "harvest";
+type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white";
 
 export class Awale {
 
@@ -17,12 +18,12 @@ export class Awale {
         ["D", 4],
         ["E", 4],
         ["F", 4],
-        ["G", 4],
-        ["H", 4],
-        ["I", 4],
-        ["J", 4],
-        ["K", 4],
-        ["L", 4]
+        ["G", 40],
+        ["H", 40],
+        ["I", 40],
+        ["J", 40],
+        ["K", 40],
+        ["L", 40]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -118,7 +119,6 @@ export class Awale {
     #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
 
-        // console.info();
         console.info(`It's your turn ${currentPlayer.getName()}!`);
 
         const playerSlots = currentPlayer.getBoard();
@@ -130,19 +130,19 @@ export class Awale {
         }) as unknown as Slot
     }
 
-    #display(): void {
+    #display(slotToUpdate?: Slot): void {
 
         // Clear the console + set upper left cursor
         console.log('\x1b[2J');
         console.log('\x1b[H');
 
         this.#rulesDisplay();
-        this.#boardDisplay();
+        this.#boardDisplay(slotToUpdate);
     }
 
     #rulesDisplay(): void {
         // Rules
-        console.info("- --===== \x1b[37mAwale Rules\x1b[0m =====-- -");
+        console.info(`- --===== ${this.#colorize("Awale Rules", "white")} =====-- -`);
         console.info();
         console.info("\x1b[35m¤\x1b[0m Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
         console.info();
@@ -155,27 +155,52 @@ export class Awale {
         console.info();
     }
 
-    #boardDisplay(): void {
+    #boardDisplay(slotToUpdate?: Slot): void {
 
         this.#players.forEach((player) => {
             player.displayScore();
         })
         console.info();
 
-        // Affichage plateau dans console
-        const upperState = this.#sides.upperBoard.map((el) => this.#gameBoard.get(el));
-        const lowerState = this.#sides.lowerBoard.map((el) => this.#gameBoard.get(el));
+        // Getting seeds state in upper/lower board
+        const upperState = this.#sides.upperBoard.map((el) => {
+            const value = this.#gameBoard.get(el);
+            if (value?.toString().length == 1) return "\x1b[33m " + value + "\x1b[0m"
 
-        console.info("\x1b[37m== BOARD ==\x1b[0m");
-        console.info(...this.#sides.upperBoard);
+            return value
+        });
+        const lowerState = this.#sides.lowerBoard.map((el) => {
+            const value = this.#gameBoard.get(el);
+            if (value?.toString().length == 1) return "\x1b[33m " + value + "\x1b[0m"
+
+            return value
+        });
+
+        const upperBoardColored = this.#sides.upperBoard.map((el) => {
+
+            return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
+        });
+        const lowerBoardColored = this.#sides.lowerBoard.map((el) => {
+            return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
+        })
+
+        console.info("\x1b[37m===== BOARD =====\x1b[0m");
+        // console.info(...this.#sides.upperBoard.map((el) => " " + el));
+        console.info(...upperBoardColored);
         console.info(...upperState);
         console.info(...lowerState);
-        console.info(...this.#sides.lowerBoard);
-        console.info("\x1b[37m===========\x1b[0m");
+        console.info(...lowerBoardColored);
+        console.info("\x1b[37m=================\x1b[0m");
         console.info();
         console.info();
         console.info();
         console.info();
+    }
+
+    #colorize(element: string, color: Color): string {
+
+        const colors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
+        return `\x1b[3${colors.indexOf(color)}m` + element + "\x1b[0m"
     }
 
     #deletePrevLine(num: number): void {
@@ -245,7 +270,7 @@ export class Awale {
             console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`);
 
         } else {
-            this.#display();
+            this.#display(slot);
 
             this.#deletePrevLine(2);
 
