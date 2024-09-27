@@ -30,21 +30,12 @@ export class Awale {
         lowerBoard: ["G", "H", "I", "J", "K", "L"]
     }
 
-    #players: Map<string, Player>
+    #players = new Map();
 
     #turnCount = 0;
     #turnArray: string[];
 
-    constructor(upperPlayer: Player, lowerPlayer: Player) {
-
-        // Setting each player with their side of gameboard
-        upperPlayer.setBoard(this.#sides.upperBoard);
-        lowerPlayer.setBoard(this.#sides.lowerBoard);
-
-        this.#players = new Map([
-            ["upperPlayer", upperPlayer],
-            ["lowerPlayer", lowerPlayer]
-        ]);
+    constructor() {
 
         // Random attribution of starting player
         let roleArray = ["upperPlayer", "lowerPlayer"];
@@ -58,10 +49,14 @@ export class Awale {
 
     public async play() {
 
-        // Welcome and starting promt
-        this.#players.forEach((player) => {
-            player.welcome();
-        })
+        // Clear the console + set upper left cursor
+        process.stdout.write("\x1b[2J");
+        process.stdout.write("\x1b[H");
+
+        console.info("- --===== \x1b[37mAwale Game\x1b[0m =====-- -");
+        console.info();
+
+        await this.#definePlayers();
 
         this.#display();
 
@@ -73,8 +68,7 @@ export class Awale {
             if (!currentPlayer.getBoard()?.includes(playerInput)) {
                 this.#display();
 
-                process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
-                process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+                this.#deletePrevLine(2);
 
                 // Check Quit command
                 if (playerInput as string === "Q") {
@@ -97,15 +91,34 @@ export class Awale {
         this.#players.forEach((player) => {
             player.displayScore();
         })
+        console.info();
 
         rl.close();
         process.exit();
     }
 
+    async #definePlayers() {
+        const upperPlayer = await this.#askPlayerName("upper");
+        this.#players.set("upperPlayer", new Player(upperPlayer));
+        this.#players.get("upperPlayer").setBoard(this.#sides.upperBoard)
+
+        const lowerPlayer = await this.#askPlayerName("lower");
+        this.#players.set("lowerPlayer", new Player(lowerPlayer));
+        this.#players.get("lowerPlayer").setBoard(this.#sides.lowerBoard)
+    }
+
+    #askPlayerName(side: "upper" | "lower") {
+        return new Promise((resolve, reject) => {
+            rl.question(`Choose a player name for the \x1b[33m${side}\x1b[0m board: `, (answer) => {
+                resolve(answer.trim());
+            });
+        }) as unknown as string;
+    }
+
     #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
 
-        console.info();
+        // console.info();
         console.info(`It's your turn ${currentPlayer.getName()}!`);
 
         const playerSlots = currentPlayer.getBoard();
@@ -162,10 +175,18 @@ export class Awale {
         console.info();
         console.info();
         console.info();
+        console.info();
+    }
+
+    #deletePrevLine(num: number): void {
+
+        for (let i = 0; i < num; i++) {
+            process.stdout.write('\x1b[1A\x1b[2K');
+        }
     }
 
     #isGameOver(): boolean {
-        // le plateau est-il vide ?
+        // Is the board empty ?
         for (const [key, _] of this.#gameBoard) {
             if (this.#gameBoard.get(key) != 0) {
                 return false
@@ -183,8 +204,7 @@ export class Awale {
         if (!seedsNumber) {
             this.#display();
 
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            this.#deletePrevLine(2);
 
             console.error(`\x1b[31m${slot}\x1b[0m is an empty slot!`);
             console.info();
@@ -217,18 +237,18 @@ export class Awale {
 
             this.#display();
 
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            this.#deletePrevLine(3)
 
             console.info(
                 `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
             );
-            console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`)
+            console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`);
+
         } else {
             this.#display();
 
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
-            process.stdout.write('\x1b[1A\x1b[2K'); // Move up 1 line and delete
+            this.#deletePrevLine(2);
+
             console.info(
                 `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
             );
@@ -282,10 +302,6 @@ export class Player {
 
     constructor(name: string) {
         this.#name = '\x1b[32m' + name + '\x1b[0m';
-    }
-
-    public welcome(): void {
-        console.info(`Welcome ${this.#name}!`);
     }
 
     public addPoints(num: number) {
