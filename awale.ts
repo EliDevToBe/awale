@@ -18,12 +18,12 @@ export class Awale {
         ["D", 4],
         ["E", 4],
         ["F", 4],
-        ["G", 40],
-        ["H", 40],
-        ["I", 40],
-        ["J", 40],
-        ["K", 40],
-        ["L", 40]
+        ["G", 4],
+        ["H", 4],
+        ["I", 4],
+        ["J", 4],
+        ["K", 4],
+        ["L", 4]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -165,19 +165,22 @@ export class Awale {
         // Getting seeds state in upper/lower board
         const upperState = this.#sides.upperBoard.map((el) => {
             const value = this.#gameBoard.get(el);
-            if (value?.toString().length == 1) return "\x1b[33m " + value + "\x1b[0m"
+
+            if (value == 0) return this.#colorize(" " + value, "red");
+            if (value?.toString().length == 1) return this.#colorize(" " + value, "yellow");
 
             return value
         });
         const lowerState = this.#sides.lowerBoard.map((el) => {
             const value = this.#gameBoard.get(el);
-            if (value?.toString().length == 1) return "\x1b[33m " + value + "\x1b[0m"
+
+            if (value == 0) return this.#colorize(" " + value, "red");
+            if (value?.toString().length == 1) return this.#colorize(" " + value, "yellow");
 
             return value
         });
 
         const upperBoardColored = this.#sides.upperBoard.map((el) => {
-
             return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
         });
         const lowerBoardColored = this.#sides.lowerBoard.map((el) => {
@@ -185,7 +188,6 @@ export class Awale {
         })
 
         console.info("\x1b[37m===== BOARD =====\x1b[0m");
-        // console.info(...this.#sides.upperBoard.map((el) => " " + el));
         console.info(...upperBoardColored);
         console.info(...upperState);
         console.info(...lowerState);
