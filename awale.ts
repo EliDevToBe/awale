@@ -100,11 +100,11 @@ export class Awale {
     async #definePlayers() {
         const upperPlayer = await this.#askPlayerName("upper");
         this.#players.set("upperPlayer", new Player(upperPlayer));
-        this.#players.get("upperPlayer").setBoard(this.#sides.upperBoard)
+        this.#players.get("upperPlayer").setBoard(this.#sides.upperBoard);
 
         const lowerPlayer = await this.#askPlayerName("lower");
         this.#players.set("lowerPlayer", new Player(lowerPlayer));
-        this.#players.get("lowerPlayer").setBoard(this.#sides.lowerBoard)
+        this.#players.get("lowerPlayer").setBoard(this.#sides.lowerBoard);
     }
 
     #askPlayerName(side: "upper" | "lower") {
