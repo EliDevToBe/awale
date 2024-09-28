@@ -16,9 +16,9 @@ Start playing the game.
 Enjoy !
 
 ```bash
-pnpm run start
+pnpm run awale
 #or
-npm run start
+npm run awale
 ```
 
 ## Roadmap
