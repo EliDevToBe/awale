@@ -84,7 +84,7 @@ export class Awale {
             this.#saw(playerInput, currentPlayer);
 
             if (this.#isGameOver()) {
-                break
+                break;
             }
         }
 
@@ -99,12 +99,10 @@ export class Awale {
 
     async #definePlayers() {
         const upperPlayer = await this.#askPlayerName("upper");
-        this.#players.set("upperPlayer", new Player(upperPlayer));
-        this.#players.get("upperPlayer").setBoard(this.#sides.upperBoard);
+        this.#players.set("upperPlayer", new Player(upperPlayer, this.#sides.upperBoard));
 
         const lowerPlayer = await this.#askPlayerName("lower");
-        this.#players.set("lowerPlayer", new Player(lowerPlayer));
-        this.#players.get("lowerPlayer").setBoard(this.#sides.lowerBoard);
+        this.#players.set("lowerPlayer", new Player(lowerPlayer, this.#sides.lowerBoard));
     }
 
     #askPlayerName(side: "upper" | "lower") {
@@ -329,8 +327,9 @@ export class Player {
     #score: number = 0;
     #board: Slot[] | null = null;
 
-    constructor(name: string) {
+    constructor(name: string, board: Slot[]) {
         this.#name = '\x1b[32m' + name + '\x1b[0m';
+        this.#board = board;
     }
 
     public addPoints(num: number) {
@@ -345,9 +344,6 @@ export class Player {
         return this.#name;
     }
 
-    public setBoard(board: Slot[]) {
-        this.#board = board;
-    }
     public getBoard() {
         return this.#board;
     }

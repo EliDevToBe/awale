@@ -1,22 +1,32 @@
 {
   "name": "awele",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Simple 2 players Awale game",
+  "main": "./dist/awale.js",
+  "module": "./dist/awale.mjs",
+  "types": "./dist/awale.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec ts-node play.ts",
-    "awale": "ts-node play.ts"
+    "build": "tsup",
+    "test": "vitest",
+    "dev": "nodemon --exec ts-node ./src/play.ts",
+    "awale": "ts-node ./src/play.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "game",
+    "awale",
+    "fun"
+  ],
+  "author": "EliDevToBe",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.6.1"
-  },
-  "dependencies": {
+    "@types/node": "^22.6.1",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
   }
 }
