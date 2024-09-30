@@ -50,9 +50,7 @@ export class Awale {
 
     public async play() {
 
-        // Clear the console + set upper left cursor
-        // process.stdout.write("\x1b[2J");
-        // process.stdout.write("\x1b[H");
+        // Clear the console
         process.stdout.write('\x1bc');
 
         console.info(`- --===== ${this.#colorize("Awale Game", "white")} =====-- -`);
@@ -133,9 +131,7 @@ export class Awale {
 
     #display(slotToUpdate?: Slot[]): void {
 
-        // Clear the console + set upper left cursor
-        // console.log('\x1b[2J');
-        // console.log('\x1b[H');
+        // Clear the console
         process.stdout.write('\x1bc');
 
         this.#rulesDisplay();
@@ -146,13 +142,13 @@ export class Awale {
         // Rules
         console.info(`- --===== ${this.#colorize("Awale Rules", "white")} =====-- -`);
         console.info();
-        console.info("\x1b[35m¤\x1b[0m Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
+        console.info(`${this.#colorize("¤", "magenta", true)} Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.`);
         console.info();
-        console.info(`\x1b[35m¤\x1b[0m You have to choose a slot on your side: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
+        console.info(`${this.#colorize("¤", "magenta", true)} You have to choose a slot on your side: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
         console.info();
-        console.info("\x1b[35m¤\x1b[0m When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m \r\n and is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a \r\n clockwise pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m.");
+        console.info(`${this.#colorize("¤", "magenta", true)} When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m \r\n and is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a \r\n clockwise pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m.`);
         console.info();
-        console.info("\x1b[35m¤\x1b[0m At anytime, type '\x1b[31mQ\x1b[0m' to \x1b[31mexit\x1b[0m the game.");
+        console.info(`${this.#colorize("¤", "magenta", true)} At anytime, type '\x1b[31mQ\x1b[0m' to \x1b[31mexit\x1b[0m the game.`);
         console.info();
         console.info();
     }
@@ -186,13 +182,11 @@ export class Awale {
             return slotToUpdate?.indexOf(el) == 1 ? this.#colorize(" " + el, "magenta", true)
                 : slotToUpdate?.indexOf(el) == 0 ? this.#colorize(" " + el, "cyan", true)
                     : " " + el;
-            // return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
         });
         const lowerBoardColored = this.#sides.lowerBoard.map((el) => {
             return slotToUpdate?.indexOf(el) == 1 ? this.#colorize(" " + el, "magenta", true)
                 : slotToUpdate?.indexOf(el) == 0 ? this.#colorize(" " + el, "cyan", true)
                     : " " + el;
-            // return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
         })
 
         console.info("\x1b[37m===== BOARD =====\x1b[0m");
@@ -273,7 +267,7 @@ export class Awale {
             this.#harvest(lastSlotKey, player);
 
             this.#display([slot, lastSlotKey]);
-            this.#deletePrevLine(3)
+            this.#deletePrevLine(3);
 
             console.info(
                 `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
