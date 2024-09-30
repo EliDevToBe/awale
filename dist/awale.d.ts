@@ -6,12 +6,11 @@ declare class Awale {
 }
 declare class Player {
     #private;
-    constructor(name: string);
+    constructor(name: string, board: Slot[]);
     addPoints(num: number): void;
     displayScore(): void;
     getName(): string;
-    setBoard(board: Slot[]): void;
-    getBoard(): Slot[] | null;
+    getBoard(): Slot[];
 }
 
 export { Awale, Player };

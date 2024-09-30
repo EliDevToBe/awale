@@ -41,7 +41,7 @@ var rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-var _gameBoard, _sides, _players, _turnCount, _turnArray, _Awale_instances, definePlayers_fn, askPlayerName_fn, playerMove_fn, display_fn, rulesDisplay_fn, boardDisplay_fn, colorize_fn, deletePrevLine_fn, isGameOver_fn, saw_fn, harvest_fn, getCurrentPlayer_fn, getTurnOrderFrom_fn;
+var _gameBoard, _sides, _players, _turnCount, _turnArray, _Awale_instances, definePlayers_fn, askPlayerName_fn, playerMove_fn, display_fn, rulesDisplay_fn, boardDisplay_fn, colorize_fn, deletePrevLine_fn, isGameOver_fn, isSideEmpty_fn, saw_fn, harvest_fn, getCurrentPlayer_fn, getTurnOrderFrom_fn;
 var Awale = class {
   constructor() {
     __privateAdd(this, _Awale_instances);
@@ -52,12 +52,12 @@ var Awale = class {
       ["D", 4],
       ["E", 4],
       ["F", 4],
-      ["G", 4],
-      ["H", 4],
-      ["I", 4],
-      ["J", 4],
-      ["K", 4],
-      ["L", 4]
+      ["G", 0],
+      ["H", 0],
+      ["I", 0],
+      ["J", 0],
+      ["K", 0],
+      ["L", 0]
     ]));
     __privateAdd(this, _sides, {
       upperBoard: ["A", "B", "C", "D", "E", "F"],
@@ -91,6 +91,11 @@ var Awale = class {
             console.info("Exiting the game. Hope you had fun!");
             break;
           }
+          if (playerInput === "secret5yzdirjinqaorq0ox1tf383nb3xr") {
+            console.info();
+            console.info();
+            continue;
+          }
           console.error(`\x1B[31m'${playerInput}\x1B[0m' -> is not a valid entry. `);
           console.info();
           continue;
@@ -118,11 +123,9 @@ _Awale_instances = new WeakSet();
 definePlayers_fn = function() {
   return __async(this, null, function* () {
     const upperPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "upper");
-    __privateGet(this, _players).set("upperPlayer", new Player(upperPlayer));
-    __privateGet(this, _players).get("upperPlayer").setBoard(__privateGet(this, _sides).upperBoard);
+    __privateGet(this, _players).set("upperPlayer", new Player(upperPlayer, __privateGet(this, _sides).upperBoard));
     const lowerPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "lower");
-    __privateGet(this, _players).set("lowerPlayer", new Player(lowerPlayer));
-    __privateGet(this, _players).get("lowerPlayer").setBoard(__privateGet(this, _sides).lowerBoard);
+    __privateGet(this, _players).set("lowerPlayer", new Player(lowerPlayer, __privateGet(this, _sides).lowerBoard));
   });
 };
 askPlayerName_fn = function(side) {
@@ -134,13 +137,31 @@ askPlayerName_fn = function(side) {
 };
 playerMove_fn = function() {
   const currentPlayer = __privateMethod(this, _Awale_instances, getCurrentPlayer_fn).call(this);
-  console.info(`It's your turn \x1B[1m${currentPlayer.getName()}\x1B[0m!`);
-  const playerSlots = currentPlayer.getBoard();
-  return new Promise((resolve, reject) => {
-    rl.question(`Choose a slot to saw (${playerSlots == null ? void 0 : playerSlots.join("-")}): `, (answer) => {
-      resolve(answer.trim().toUpperCase());
+  if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, currentPlayer.getBoard())) {
+    let suspensPoints = "";
+    console.info(`It's your turn \x1B[1m${currentPlayer.getName()}\x1B[0m!`);
+    console.info(`Oh no! You have no moves left! ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "Switching turn", "white", true)}`);
+    return new Promise((resolve, reject) => {
+      const suspensId = setInterval(() => {
+        suspensPoints += ".";
+        __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 1);
+        console.info(`Oh no! You have no moves left! ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "Switching turn" + suspensPoints, "white", true)}`);
+      }, 500);
+      setTimeout(() => {
+        clearInterval(suspensId);
+        __privateWrapper(this, _turnCount)._++;
+        resolve("secret5yzdirjinqaorq0ox1tf383nb3xr");
+      }, 2e3);
     });
-  });
+  } else {
+    console.info(`It's your turn \x1B[1m${currentPlayer.getName()}\x1B[0m!`);
+    const playerSlots = currentPlayer.getBoard();
+    return new Promise((resolve, reject) => {
+      rl.question(`Choose a slot to saw (${playerSlots == null ? void 0 : playerSlots.join("-")}): `, (answer) => {
+        resolve(answer.trim().toUpperCase());
+      });
+    });
+  }
 };
 display_fn = function(slotToUpdate) {
   process.stdout.write("\x1Bc");
@@ -211,13 +232,19 @@ deletePrevLine_fn = function(num) {
   }
 };
 isGameOver_fn = function() {
-  for (const [key, _] of __privateGet(this, _gameBoard)) {
-    if (__privateGet(this, _gameBoard).get(key) != 0) {
+  if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).upperBoard) && __privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).lowerBoard)) {
+    console.info("G A M E  O V E R");
+    console.info("The board is finally empty!");
+    return true;
+  }
+  return false;
+};
+isSideEmpty_fn = function(side) {
+  for (const slot of side) {
+    if (__privateGet(this, _gameBoard).get(slot) != 0) {
       return false;
     }
   }
-  console.info("G A M E  O V E R");
-  console.info("The board is finally empty!");
   return true;
 };
 saw_fn = function(slot, player) {
@@ -287,11 +314,12 @@ getTurnOrderFrom_fn = function(slot, action) {
 };
 var _name, _score, _board;
 var Player = class {
-  constructor(name) {
+  constructor(name, board) {
     __privateAdd(this, _name);
     __privateAdd(this, _score, 0);
-    __privateAdd(this, _board, null);
+    __privateAdd(this, _board);
     __privateSet(this, _name, "\x1B[32m" + name + "\x1B[0m");
+    __privateSet(this, _board, board);
   }
   addPoints(num) {
     __privateSet(this, _score, __privateGet(this, _score) + num);
@@ -301,9 +329,6 @@ var Player = class {
   }
   getName() {
     return __privateGet(this, _name);
-  }
-  setBoard(board) {
-    __privateSet(this, _board, board);
   }
   getBoard() {
     return __privateGet(this, _board);
