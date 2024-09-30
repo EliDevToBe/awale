@@ -51,10 +51,11 @@ export class Awale {
     public async play() {
 
         // Clear the console + set upper left cursor
-        process.stdout.write("\x1b[2J");
-        process.stdout.write("\x1b[H");
+        // process.stdout.write("\x1b[2J");
+        // process.stdout.write("\x1b[H");
+        process.stdout.write('\x1bc');
 
-        console.info("- --===== \x1b[37mAwale Game\x1b[0m =====-- -");
+        console.info(`- --===== ${this.#colorize("Awale Game", "white")} =====-- -`);
         console.info();
 
         await this.#definePlayers();
@@ -119,7 +120,7 @@ export class Awale {
     #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
 
-        console.info(`It's your turn ${currentPlayer.getName()}!`);
+        console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
 
         const playerSlots = currentPlayer.getBoard();
 
@@ -130,11 +131,12 @@ export class Awale {
         }) as unknown as Slot
     }
 
-    #display(slotToUpdate?: Slot): void {
+    #display(slotToUpdate?: Slot[]): void {
 
         // Clear the console + set upper left cursor
-        console.log('\x1b[2J');
-        console.log('\x1b[H');
+        // console.log('\x1b[2J');
+        // console.log('\x1b[H');
+        process.stdout.write('\x1bc');
 
         this.#rulesDisplay();
         this.#boardDisplay(slotToUpdate);
@@ -146,7 +148,7 @@ export class Awale {
         console.info();
         console.info("\x1b[35m¤\x1b[0m Each player chooses a \x1b[34mnon empty\x1b[0m slot to distribute the seeds \r\n inside following a counter-clockwise pattern.");
         console.info();
-        console.info(`\x1b[35m¤\x1b[0m You have to choose a slot that belongs to you: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
+        console.info(`\x1b[35m¤\x1b[0m You have to choose a slot on your side: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
         console.info();
         console.info("\x1b[35m¤\x1b[0m When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m \r\n and is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a \r\n clockwise pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m.");
         console.info();
@@ -155,7 +157,7 @@ export class Awale {
         console.info();
     }
 
-    #boardDisplay(slotToUpdate?: Slot): void {
+    #boardDisplay(slotToUpdate?: Slot[]): void {
 
         this.#players.forEach((player) => {
             player.displayScore();
@@ -181,10 +183,16 @@ export class Awale {
         });
 
         const upperBoardColored = this.#sides.upperBoard.map((el) => {
-            return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
+            return slotToUpdate?.indexOf(el) == 1 ? this.#colorize(" " + el, "magenta", true)
+                : slotToUpdate?.indexOf(el) == 0 ? this.#colorize(" " + el, "cyan", true)
+                    : " " + el;
+            // return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
         });
         const lowerBoardColored = this.#sides.lowerBoard.map((el) => {
-            return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
+            return slotToUpdate?.indexOf(el) == 1 ? this.#colorize(" " + el, "magenta", true)
+                : slotToUpdate?.indexOf(el) == 0 ? this.#colorize(" " + el, "cyan", true)
+                    : " " + el;
+            // return el == slotToUpdate ? this.#colorize(" " + el, "blue") : " " + el;
         })
 
         console.info("\x1b[37m===== BOARD =====\x1b[0m");
@@ -199,10 +207,12 @@ export class Awale {
         console.info();
     }
 
-    #colorize(element: string, color: Color): string {
+    #colorize(element: string, color: Color, bold: boolean = false): string {
 
         const colors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
-        return `\x1b[3${colors.indexOf(color)}m` + element + "\x1b[0m"
+        const params = colors.indexOf(color) + (bold ? ";1" : "")
+
+        return `\x1b[3${params}m` + element + "\x1b[0m"
     }
 
     #deletePrevLine(num: number): void {
@@ -262,22 +272,20 @@ export class Awale {
         ) {
             this.#harvest(lastSlotKey, player);
 
-            this.#display();
-
+            this.#display([slot, lastSlotKey]);
             this.#deletePrevLine(3)
 
             console.info(
-                `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
+                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
             );
-            console.info(`/!\\ \x1b[35mHARVEST TIME\x1b[0m on slot ${lastSlotKey} /!\\`);
+            console.info(`/!\\ ${this.#colorize("HARVEST TIME", "magenta", true)} on slot ${this.#colorize(lastSlotKey, "magenta")} /!\\`);
 
         } else {
-            this.#display(slot);
-
+            this.#display([slot]);
             this.#deletePrevLine(2);
 
             console.info(
-                `Player ${player.getName()} saw on slot \x1b[33m${slot}\x1b[0m.`
+                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
             );
         }
 
