@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import * as readline from "readline";
 
 const rl = readline.createInterface({
@@ -10,7 +9,7 @@ type Slot = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L
 type Action = "saw" | "harvest";
 type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white";
 
-export class Awale {
+class Awale {
 
     #gameBoard: Map<string, number> = new Map([
         ["A", 4],
@@ -19,12 +18,12 @@ export class Awale {
         ["D", 4],
         ["E", 4],
         ["F", 4],
-        ["G", 0],
-        ["H", 0],
-        ["I", 0],
-        ["J", 0],
-        ["K", 0],
-        ["L", 0]
+        ["G", 4],
+        ["H", 4],
+        ["I", 4],
+        ["J", 4],
+        ["K", 4],
+        ["L", 4]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -114,9 +113,9 @@ export class Awale {
     }
 
     #askPlayerName(side: "upper" | "lower") {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _) => {
             rl.question(`Choose a player name for the \x1b[33m${side}\x1b[0m board: `, (answer) => {
-                resolve(answer.trim());
+                resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
             });
         }) as unknown as string;
     }
@@ -131,7 +130,7 @@ export class Awale {
             console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
             console.info(`Oh no! You have no moves left! ${this.#colorize("Switching turn", "white", true)}`)
 
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, _) => {
 
                 const suspensId = setInterval(() => {
                     suspensPoints += ".";
@@ -168,11 +167,12 @@ export class Awale {
         // Clear the console
         process.stdout.write('\x1bc');
 
-        this.#rulesDisplay();
-        this.#boardDisplay(slotToUpdate);
+        this.#displayRules();
+        this.#displayPlayersScore();
+        this.#displayBoard(slotToUpdate);
     }
 
-    #rulesDisplay(): void {
+    #displayRules(): void {
         // Rules
         console.info(`- --===== ${this.#colorize("Awale Rules", "white")} =====-- -`);
         console.info();
@@ -187,12 +187,30 @@ export class Awale {
         console.info();
     }
 
-    #boardDisplay(slotToUpdate?: Slot[]): void {
+    #displayPlayersScore(): void {
 
-        this.#players.forEach((player) => {
+        const uP = this.#players.get("upperPlayer");
+        const lP = this.#players.get("lowerPlayer");
+
+        if (uP.getScore() == lP.getScore()) {
+            uP.setWin(false);
+            lP.setWin(false);
+        }
+        else if (uP.getScore() < lP.getScore()) {
+            uP.setWin(false);
+            lP.setWin(true);
+        } else {
+            uP.setWin(true);
+            lP.setWin(false);
+        }
+
+        this.#players.forEach((player: Player) => {
             player.displayScore();
         })
         console.info();
+    }
+
+    #displayBoard(slotToUpdate?: Slot[]): void {
 
         // Getting seeds state in upper/lower board
         const upperState = this.#sides.upperBoard.map((el) => {
@@ -284,7 +302,7 @@ export class Awale {
 
             this.#deletePrevLine(2);
 
-            console.error(`\x1b[31m${slot}\x1b[0m is an empty slot!`);
+            console.error(`${this.#colorize(slot, "red", true)}\ is an empty slot!`);
             console.info();
 
             return false
@@ -311,7 +329,7 @@ export class Awale {
             && lastSlotValue > 0
             && !player.getBoard()?.includes(lastSlotKey)
         ) {
-            this.#harvest(lastSlotKey, player);
+            const harvestValue = this.#harvest(lastSlotKey, player);
 
             this.#display([slot, lastSlotKey]);
             this.#deletePrevLine(3);
@@ -319,7 +337,7 @@ export class Awale {
             console.info(
                 `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
             );
-            console.info(`/!\\ ${this.#colorize("HARVEST TIME", "magenta", true)} on slot ${this.#colorize(lastSlotKey, "magenta")} /!\\`);
+            console.info(`/!\\ ${this.#colorize("HARVEST TIME", "magenta", true)} on slot ${this.#colorize(lastSlotKey, "magenta", true)} /!\\ ${this.#colorize("+" + harvestValue, "yellow", true)} points!`);
 
         } else {
             this.#display([slot]);
@@ -336,8 +354,9 @@ export class Awale {
         return true
     }
 
-    #harvest(slot: Slot, player: Player): void {
+    #harvest(slot: Slot, player: Player): number {
 
+        const currentPoints = player.getScore();
         const harvestOrder = this.#getTurnOrderFrom(slot, "harvest");
 
         for (const slot of harvestOrder) {
@@ -348,6 +367,9 @@ export class Awale {
             player.addPoints(this.#gameBoard.get(slot) ?? 0);
             this.#gameBoard.set(slot, 0);
         }
+        const newPoints = player.getScore();
+
+        return newPoints - currentPoints;
     }
 
     #getCurrentPlayer(): Player {
@@ -369,30 +391,41 @@ export class Awale {
     }
 }
 
-export class Player {
+class Player {
 
     #name: string;
     #score: number = 0;
-    #board: Slot[]
+    #board: Slot[];
+    #isWinning: boolean = false;
 
     constructor(name: string, board: Slot[]) {
         this.#name = '\x1b[32m' + name + '\x1b[0m';
         this.#board = board;
     }
 
-    public addPoints(num: number) {
+    public addPoints(num: number): void {
         this.#score += num;
     }
 
-    public displayScore(): void {
-        console.info(`${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
+    public getScore(): number {
+        return this.#score;
     }
 
-    public getName() {
+    public displayScore(): void {
+        console.info(`${this.#isWinning ? "👑 " : "   "} ${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
+    }
+
+    public getName(): string {
         return this.#name;
     }
 
-    public getBoard() {
+    public getBoard(): Slot[] {
         return this.#board;
     }
+
+    public setWin(bool: boolean): void {
+        bool ? this.#isWinning = true : this.#isWinning = false
+    }
 }
+
+new Awale().play();
