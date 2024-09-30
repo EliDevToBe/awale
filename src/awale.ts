@@ -1,3 +1,4 @@
+import { resolve } from "path";
 import * as readline from "readline";
 
 const rl = readline.createInterface({
@@ -18,12 +19,12 @@ export class Awale {
         ["D", 4],
         ["E", 4],
         ["F", 4],
-        ["G", 4],
-        ["H", 4],
-        ["I", 4],
-        ["J", 4],
-        ["K", 4],
-        ["L", 4]
+        ["G", 0],
+        ["H", 0],
+        ["I", 0],
+        ["J", 0],
+        ["K", 0],
+        ["L", 0]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -76,6 +77,13 @@ export class Awale {
                     break;
                 }
 
+                // Check secret token for switching turn
+                if (playerInput as string === "secret5yzdirjinqaorq0ox1tf383nb3xr") {
+                    console.info();
+                    console.info();
+                    continue;
+                }
+
                 console.error(`\x1b[31m'${playerInput}\x1b[0m' -> is not a valid entry. `);
                 console.info();
                 continue;
@@ -116,15 +124,44 @@ export class Awale {
     #playerMove() {
         const currentPlayer = this.#getCurrentPlayer();
 
-        console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
+        if (this.#isSideEmpty(currentPlayer.getBoard())) {
 
-        const playerSlots = currentPlayer.getBoard();
+            let suspensPoints = "";
 
-        return new Promise((resolve, reject) => {
-            rl.question(`Choose a slot to saw (${playerSlots?.join("-")}): `, (answer) => {
-                resolve(answer.trim().toUpperCase());
-            });
-        }) as unknown as Slot
+            console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
+            console.info(`Oh no! You have no moves left! ${this.#colorize("Switching turn", "white", true)}`)
+
+
+            return new Promise((resolve, reject) => {
+
+                const suspensId = setInterval(() => {
+                    suspensPoints += ".";
+
+                    this.#deletePrevLine(1);
+                    console.info(`Oh no! You have no moves left! ${this.#colorize("Switching turn" + suspensPoints, "white", true)}`)
+                }, 500);
+
+                setTimeout(() => {
+                    clearInterval(suspensId);
+                    this.#turnCount++;
+
+                    resolve("secret5yzdirjinqaorq0ox1tf383nb3xr");
+
+                }, 2000)
+            }) as unknown as Slot
+
+        } else {
+
+            console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
+
+            const playerSlots = currentPlayer.getBoard();
+
+            return new Promise((resolve, reject) => {
+                rl.question(`Choose a slot to saw (${playerSlots?.join("-")}): `, (answer) => {
+                    resolve(answer.trim().toUpperCase());
+                });
+            }) as unknown as Slot
+        }
     }
 
     #display(slotToUpdate?: Slot[]): void {
@@ -215,14 +252,24 @@ export class Awale {
     }
 
     #isGameOver(): boolean {
-        // Is the board empty ?
-        for (const [key, _] of this.#gameBoard) {
-            if (this.#gameBoard.get(key) != 0) {
-                return false
+
+        if (this.#isSideEmpty(this.#sides.upperBoard)
+            && this.#isSideEmpty(this.#sides.lowerBoard)) {
+
+            console.info("G A M E  O V E R");
+            console.info("The board is finally empty!");
+            return true
+        }
+        return false
+    }
+
+    #isSideEmpty(side: Slot[]): boolean {
+
+        for (const slot of side) {
+            if (this.#gameBoard.get(slot) != 0) {
+                return false;
             }
         }
-        console.info("G A M E  O V E R");
-        console.info("The board is finally empty!");
         return true
     }
 
@@ -325,7 +372,7 @@ export class Player {
 
     #name: string;
     #score: number = 0;
-    #board: Slot[] | null = null;
+    #board: Slot[]
 
     constructor(name: string, board: Slot[]) {
         this.#name = '\x1b[32m' + name + '\x1b[0m';
