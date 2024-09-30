@@ -83,7 +83,7 @@ class Awale {
                     continue;
                 }
 
-                console.error(`\x1b[31m'${playerInput}\x1b[0m' -> is not a valid entry. `);
+                console.error(`\x1b[31m'${playerInput.length > 10 ? playerInput.slice(0, 7) + "..." : playerInput}\x1b[0m' -> is not a valid entry. `);
                 console.info();
                 continue;
             }
