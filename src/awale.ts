@@ -131,7 +131,6 @@ export class Awale {
             console.info(`It's your turn \x1b[1m${currentPlayer.getName()}\x1b[0m!`);
             console.info(`Oh no! You have no moves left! ${this.#colorize("Switching turn", "white", true)}`)
 
-
             return new Promise((resolve, reject) => {
 
                 const suspensId = setInterval(() => {
@@ -213,6 +212,7 @@ export class Awale {
             return value
         });
 
+        // Colorize player move + Harvest move
         const upperBoardColored = this.#sides.upperBoard.map((el) => {
             return slotToUpdate?.indexOf(el) == 1 ? this.#colorize(" " + el, "magenta", true)
                 : slotToUpdate?.indexOf(el) == 0 ? this.#colorize(" " + el, "cyan", true)
@@ -224,6 +224,7 @@ export class Awale {
                     : " " + el;
         })
 
+        // Final display
         console.info("\x1b[37m===== BOARD =====\x1b[0m");
         console.info(...upperBoardColored);
         console.info(...upperState);
@@ -247,6 +248,7 @@ export class Awale {
     #deletePrevLine(num: number): void {
 
         for (let i = 0; i < num; i++) {
+            // Move cursor 1 line up and clear
             process.stdout.write('\x1b[1A\x1b[2K');
         }
     }
@@ -365,7 +367,6 @@ export class Awale {
             return sawOrder.reverse();
         }
     }
-
 }
 
 export class Player {
