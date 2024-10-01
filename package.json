@@ -1,17 +1,10 @@
 {
-  "name": "awele",
+  "name": "awale",
   "version": "1.0.0",
   "description": "Student project of a simple 2 players Awale game",
   "main": "./dist/awale.js",
   "module": "./dist/awale.mjs",
   "types": "./dist/awale.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
   "bin": {
     "awale": "./awale.js"
   },
@@ -29,7 +22,7 @@
     "fun"
   ],
   "author": "EliDevToBe",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.6.1",
     "nodemon": "^3.1.7",

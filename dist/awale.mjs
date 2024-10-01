@@ -121,7 +121,7 @@ _players = new WeakMap();
 _turnCount = new WeakMap();
 _turnArray = new WeakMap();
 _Awale_instances = new WeakSet();
-definePlayers_fn = function () {
+definePlayers_fn = function() {
   return __async(this, null, function* () {
     const upperPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "upper");
     __privateGet(this, _players).set("upperPlayer", new Player(upperPlayer, __privateGet(this, _sides).upperBoard));
@@ -129,14 +129,14 @@ definePlayers_fn = function () {
     __privateGet(this, _players).set("lowerPlayer", new Player(lowerPlayer, __privateGet(this, _sides).lowerBoard));
   });
 };
-askPlayerName_fn = function (side) {
+askPlayerName_fn = function(side) {
   return new Promise((resolve, _) => {
     rl.question(`Choose a player name for the \x1B[33m${side}\x1B[0m board: `, (answer) => {
       resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
     });
   });
 };
-playerMove_fn = function () {
+playerMove_fn = function() {
   const currentPlayer = __privateMethod(this, _Awale_instances, getCurrentPlayer_fn).call(this);
   if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, currentPlayer.getBoard())) {
     let suspensPoints = "";
@@ -164,13 +164,13 @@ playerMove_fn = function () {
     });
   }
 };
-display_fn = function (slotToUpdate) {
+display_fn = function(slotToUpdate) {
   process.stdout.write("\x1Bc");
   __privateMethod(this, _Awale_instances, displayRules_fn).call(this);
   __privateMethod(this, _Awale_instances, displayPlayersScore_fn).call(this);
   __privateMethod(this, _Awale_instances, displayBoard_fn).call(this, slotToUpdate);
 };
-displayRules_fn = function () {
+displayRules_fn = function() {
   var _a, _b;
   console.info(`- --===== ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "Awale Rules", "white")} =====-- -`);
   console.info();
@@ -189,7 +189,7 @@ displayRules_fn = function () {
   console.info();
   console.info();
 };
-displayPlayersScore_fn = function () {
+displayPlayersScore_fn = function() {
   const uP = __privateGet(this, _players).get("upperPlayer");
   const lP = __privateGet(this, _players).get("lowerPlayer");
   if (uP.getScore() == lP.getScore()) {
@@ -207,7 +207,7 @@ displayPlayersScore_fn = function () {
   });
   console.info();
 };
-displayBoard_fn = function (slotToUpdate) {
+displayBoard_fn = function(slotToUpdate) {
   const upperState = __privateGet(this, _sides).upperBoard.map((el) => {
     const value = __privateGet(this, _gameBoard).get(el);
     if (value == 0) return __privateMethod(this, _Awale_instances, colorize_fn).call(this, " " + value, "red");
@@ -237,17 +237,17 @@ displayBoard_fn = function (slotToUpdate) {
   console.info();
   console.info();
 };
-colorize_fn = function (element, color, bold = false) {
+colorize_fn = function(element, color, bold = false) {
   const colors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"];
   const params = colors.indexOf(color) + (bold ? ";1" : "");
   return `\x1B[3${params}m` + element + "\x1B[0m";
 };
-deletePrevLine_fn = function (num) {
+deletePrevLine_fn = function(num) {
   for (let i = 0; i < num; i++) {
     process.stdout.write("\x1B[1A\x1B[2K");
   }
 };
-isGameOver_fn = function () {
+isGameOver_fn = function() {
   if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).upperBoard) && __privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).lowerBoard)) {
     console.info("G A M E  O V E R");
     console.info("The board is finally empty!");
@@ -255,7 +255,7 @@ isGameOver_fn = function () {
   }
   return false;
 };
-isSideEmpty_fn = function (side) {
+isSideEmpty_fn = function(side) {
   for (const slot of side) {
     if (__privateGet(this, _gameBoard).get(slot) != 0) {
       return false;
@@ -263,7 +263,7 @@ isSideEmpty_fn = function (side) {
   }
   return true;
 };
-saw_fn = function (slot, player) {
+saw_fn = function(slot, player) {
   var _a;
   let seedsNumber = __privateGet(this, _gameBoard).get(slot);
   if (!seedsNumber) {
@@ -306,7 +306,7 @@ saw_fn = function (slot, player) {
   console.info();
   return true;
 };
-harvest_fn = function (slot, player) {
+harvest_fn = function(slot, player) {
   var _a;
   const currentPoints = player.getScore();
   const harvestOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "harvest");
@@ -320,11 +320,11 @@ harvest_fn = function (slot, player) {
   const newPoints = player.getScore();
   return newPoints - currentPoints;
 };
-getCurrentPlayer_fn = function () {
+getCurrentPlayer_fn = function() {
   const playerRole = __privateGet(this, _turnArray)[__privateGet(this, _turnCount) % 2];
   return __privateGet(this, _players).get(playerRole);
 };
-getTurnOrderFrom_fn = function (slot, action) {
+getTurnOrderFrom_fn = function(slot, action) {
   const turnOrder = ["F", "E", "D", "C", "B", "A", "G", "H", "I", "J", "K", "L"];
   const sawOrder = [
     ...turnOrder.slice(turnOrder.indexOf(slot) + 1),
