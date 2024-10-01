@@ -12,18 +12,18 @@ type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" 
 class Awale {
 
     #gameBoard: Map<string, number> = new Map([
-        ["A", 12],
-        ["B", 0],
-        ["C", 0],
-        ["D", 0],
-        ["E", 0],
-        ["F", 0],
-        ["G", 12],
-        ["H", 0],
-        ["I", 0],
-        ["J", 0],
-        ["K", 0],
-        ["L", 0]
+        ["A", 4],
+        ["B", 4],
+        ["C", 4],
+        ["D", 4],
+        ["E", 4],
+        ["F", 4],
+        ["G", 4],
+        ["H", 4],
+        ["I", 4],
+        ["J", 4],
+        ["K", 4],
+        ["L", 4]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -317,7 +317,7 @@ class Awale {
             const key = sawOrder[i % sawOrder.length];
 
             if (key == slot) {
-                seedsNumber++
+                seedsNumber++;
                 continue;
 
             } else {
