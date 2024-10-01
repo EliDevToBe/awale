@@ -12,18 +12,18 @@ type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" 
 class Awale {
 
     #gameBoard: Map<string, number> = new Map([
-        ["A", 4],
-        ["B", 4],
-        ["C", 4],
-        ["D", 4],
-        ["E", 4],
-        ["F", 4],
-        ["G", 4],
-        ["H", 4],
-        ["I", 4],
-        ["J", 4],
-        ["K", 4],
-        ["L", 4]
+        ["A", 12],
+        ["B", 0],
+        ["C", 0],
+        ["D", 0],
+        ["E", 0],
+        ["F", 0],
+        ["G", 12],
+        ["H", 0],
+        ["I", 0],
+        ["J", 0],
+        ["K", 0],
+        ["L", 0]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -315,9 +315,15 @@ class Awale {
         for (let i = 0; i < seedsNumber; i++) {
 
             const key = sawOrder[i % sawOrder.length];
-            let value = this.#gameBoard.get(key)!;
 
-            this.#gameBoard.set(key, value += 1);
+            if (key == slot) {
+                seedsNumber++
+                continue;
+
+            } else {
+                let value = this.#gameBoard.get(key)!;
+                this.#gameBoard.set(key, value += 1);
+            }
         }
 
         // Check for last slot and possible Harvest
@@ -412,7 +418,7 @@ class Player {
     }
 
     public displayScore(): void {
-        console.info(`${this.#isWinning ? "👑 " : "   "} ${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
+        console.info(`${this.#isWinning ? "👑 " : "   "}${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
     }
 
     public getName(): string {
