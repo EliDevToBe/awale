@@ -32,6 +32,6 @@ Next, in order to execute the game, add the following to your `package.json`:
 
 Finally, run `npm run game`, `yarn game` or `pnpm game`, depending on your package manager.
 
-Speaking of managers, it's time to annoy yours by challenging him to a game with your latest find.
+Speaking of managers, it's time to annoy yours by challenging him to a game of your latest find.
 
 🎊 Enjoy the game ! 🎉
