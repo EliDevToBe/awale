@@ -6,7 +6,7 @@
   "module": "./dist/awale.mjs",
   "types": "./dist/awale.d.ts",
   "bin": {
-    "awale": "./dist/awale.js"
+    "awale": "dist/awale.js"
   },
   "files": [
     "dist"
