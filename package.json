@@ -1,18 +1,27 @@
 {
   "name": "awele",
   "version": "1.0.0",
-  "description": "Simple 2 players Awale game",
+  "description": "Student project of a simple 2 players Awale game",
   "main": "./dist/awale.js",
   "module": "./dist/awale.mjs",
   "types": "./dist/awale.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "awale": "./awale.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest",
-    "dev": "nodemon --exec ts-node ./src/play.ts",
-    "awale": "ts-node ./src/play.ts"
+    "build:dev": "tsup --watch",
+    "dev": "nodemon --exec ts-node ./src/awale.ts"
   },
   "keywords": [
     "game",
