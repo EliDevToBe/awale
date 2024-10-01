@@ -1,4 +1,4 @@
-MIT License
+# MIT License
 
 Copyright (c) 2024 [EliDevToBe](https://www.github.com/EliDevToBe)
 

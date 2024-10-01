@@ -6,14 +6,13 @@
   "module": "./dist/awale.mjs",
   "types": "./dist/awale.d.ts",
   "bin": {
-    "awale": "./awale.js"
+    "awale": "./dist/awale.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsup",
-    "build:dev": "tsup --watch",
     "dev": "nodemon --exec ts-node ./src/awale.ts"
   },
   "keywords": [
