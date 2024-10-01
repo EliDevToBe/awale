@@ -1,6 +1,6 @@
 {
   "name": "awale",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Student project of a simple 2 players Awale game",
   "main": "./dist/awale.js",
   "module": "./dist/awale.mjs",
