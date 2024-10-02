@@ -12,13 +12,23 @@ It is now in your shell 😮
 
 > *Useless, therefore indispensable.*
 
-## ⚙️ Install
+## ⚡ Quickplay
+
+No time to waste, you want it for sure!
+
+```bash
+npx awale -y
+```
+
+## ⚙️ Full setup, because why not ?
 
 Run the following command with your favorite package manager.
 
 ```bash
 pnpm i -D awale
 ```
+
+### ▶️ Play
 
 Next, in order to execute the game, add the following to your `package.json`:
 
@@ -30,10 +40,8 @@ Next, in order to execute the game, add the following to your `package.json`:
 }
 ```
 
-### ▶️ Play
-
 Finally, run `npm run game`, `yarn game` or `pnpm game`, depending on your package manager.
 
 Speaking of managers, it's time to annoy yours by challenging him to a game of your latest find.
 
-🎊 Enjoy the game ! 🎉
+🎊 Enjoy the ! 🎉
