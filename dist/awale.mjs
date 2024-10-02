@@ -181,9 +181,9 @@ displayRules_fn = function() {
  - ${(_a = __privateGet(this, _players).get("upperPlayer")) == null ? void 0 : _a.getName()}: A-B-C-D-E-F \r
  - ${(_b = __privateGet(this, _players).get("lowerPlayer")) == null ? void 0 : _b.getName()}: G-H-I-J-K-L`);
   console.info();
-  console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "\xA4", "magenta", true)} When the \x1B[34mfinishing slot\x1B[0m of the distribution cycle has \x1B[34m1-2 seeds\x1B[0m \r
- and is in the adversary board, you \x1B[34mcollect\x1B[0m all the seeds in a \r
- clockwise pattern \x1B[34muntil\x1B[0m finding a slot of at least \x1B[34m4 seeds\x1B[0m.`);
+  console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "\xA4", "magenta", true)} When the \x1B[34mfinishing slot\x1B[0m of the distribution cycle has \x1B[34m1-2 seeds\x1B[0m and \r
+ is in the adversary board, you \x1B[34mcollect\x1B[0m all the seeds in a clockwise \r
+ pattern \x1B[34muntil\x1B[0m finding a slot of at least \x1B[34m4 seeds\x1B[0m or one of yours.`);
   console.info();
   console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "\xA4", "magenta", true)} At anytime, type '\x1B[31mQ\x1B[0m' to \x1B[31mexit\x1B[0m the game.`);
   console.info();
@@ -311,7 +311,7 @@ harvest_fn = function(slot, player) {
   const currentPoints = player.getScore();
   const harvestOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "harvest");
   for (const slot2 of harvestOrder) {
-    if (__privateGet(this, _gameBoard).get(slot2) > 3) {
+    if (__privateGet(this, _gameBoard).get(slot2) > 3 || player.getBoard().includes(slot2)) {
       break;
     }
     player.addPoints((_a = __privateGet(this, _gameBoard).get(slot2)) != null ? _a : 0);
