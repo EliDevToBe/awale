@@ -181,7 +181,7 @@ class Awale {
         console.info();
         console.info(`${this.#colorize("¤", "magenta", true)} You have to choose a slot on your side: \r\n - ${this.#players.get("upperPlayer")?.getName()}: A-B-C-D-E-F \r\n - ${this.#players.get("lowerPlayer")?.getName()}: G-H-I-J-K-L`);
         console.info();
-        console.info(`${this.#colorize("¤", "magenta", true)} When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m \r\n and is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a \r\n clockwise pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m.`);
+        console.info(`${this.#colorize("¤", "magenta", true)} When the \x1b[34mfinishing slot\x1b[0m of the distribution cycle has \x1b[34m1-2 seeds\x1b[0m and \r\n is in the adversary board, you \x1b[34mcollect\x1b[0m all the seeds in a clockwise \r\n pattern \x1b[34muntil\x1b[0m finding a slot of at least \x1b[34m4 seeds\x1b[0m or one of yours.`);
         console.info();
         console.info(`${this.#colorize("¤", "magenta", true)} At anytime, type '\x1b[31mQ\x1b[0m' to \x1b[31mexit\x1b[0m the game.`);
         console.info();
@@ -367,7 +367,8 @@ class Awale {
         const harvestOrder = this.#getTurnOrderFrom(slot, "harvest");
 
         for (const slot of harvestOrder) {
-            if (this.#gameBoard.get(slot)! > 3) {
+            if (this.#gameBoard.get(slot)! > 3
+                || player.getBoard().includes(slot)) {
                 break;
             }
 
