@@ -44,4 +44,4 @@ Finally, run `npm run game`, `yarn game` or `pnpm game`, depending on your packa
 
 Speaking of managers, it's time to annoy yours by challenging him to a game of your latest find.
 
-🎊 Enjoy the ! 🎉
+🎊 Enjoy ! 🎉
