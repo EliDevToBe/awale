@@ -10,6 +10,8 @@ Fear not, Awale's here !
 Awale, also known as Oware or Mancala, is an ancient two-player strategy game that originated in Africa.  
 It is now in your shell 😮
 
+![awale50](https://github.com/user-attachments/assets/c1462ed6-a22a-4082-85da-8fdc9d408daf)
+
 > *Useless, therefore indispensable.*
 
 ## ⚡ Quickplay
