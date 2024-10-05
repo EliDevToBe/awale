@@ -13,18 +13,18 @@ type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" 
 class Awale {
 
     #gameBoard: Map<string, number> = new Map([
-        ["A", 4],
-        ["B", 4],
-        ["C", 4],
-        ["D", 4],
-        ["E", 4],
-        ["F", 4],
-        ["G", 4],
-        ["H", 4],
-        ["I", 4],
-        ["J", 4],
-        ["K", 4],
-        ["L", 4]
+        ["A", 0],
+        ["B", 2],
+        ["C", 0],
+        ["D", 1],
+        ["E", 1],
+        ["F", 0],
+        ["G", 1],
+        ["H", 0],
+        ["I", 3],
+        ["J", 0],
+        ["K", 0],
+        ["L", 0]
     ]);
 
     #sides: Record<string, Slot[]> = {
@@ -57,14 +57,36 @@ class Awale {
         console.info(`- --===== ${this.#colorize("Awale Game", "white")} =====-- -`);
         console.info();
 
-        await this.#definePlayers();
+        const isSinglePlayer = await this.#isSinglePlayer();
+        await this.#definePlayers(isSinglePlayer);
 
         this.#display();
 
         while (true) {
 
-            const playerInput: Slot = await this.#playerMove();
+            const playerRole = this.#turnArray[this.#turnCount % 2];
+
+            if (playerRole == "upperPlayer" && isSinglePlayer) {
+                // BOT turn
+                const theBot = this.#getCurrentPlayer();
+                const theBotMove = await this.#botMove(375);
+
+                this.#display();
+                this.#deletePrevLine(2);
+
+                if (theBotMove as string === "secret5yzdirjinqaorq0ox1tf383nb3xr") {
+                    console.info();
+                    console.info();
+                    continue;
+                }
+
+                this.#saw(theBotMove, theBot);
+
+                continue;
+            }
+
             const currentPlayer = this.#getCurrentPlayer();
+            const playerInput: Slot = await this.#playerMove();
 
             if (!currentPlayer.getBoard()?.includes(playerInput)) {
                 this.#display();
@@ -105,20 +127,103 @@ class Awale {
         process.exit();
     }
 
-    async #definePlayers() {
-        const upperPlayer = await this.#askPlayerName("upper");
-        this.#players.set("upperPlayer", new Player(upperPlayer, this.#sides.upperBoard));
+    #botMove(milisecondsSpeed: number): Slot {
+        const botBoard = this.#sides.upperBoard;
 
-        const lowerPlayer = await this.#askPlayerName("lower");
-        this.#players.set("lowerPlayer", new Player(lowerPlayer, this.#sides.lowerBoard));
-    }
+        if (this.#isSideEmpty(botBoard)) {
 
-    #askPlayerName(side: "upper" | "lower") {
-        return new Promise((resolve, _) => {
-            rl.question(`Choose a player name for the \x1b[33m${side}\x1b[0m board: `, (answer) => {
-                resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
-            });
-        }) as unknown as string;
+            let suspensPoints = "";
+
+            console.info();
+            console.info(`${this.#colorize(`${this.#players.get("upperPlayer").getName()} is playing`, "white", true)}`)
+
+
+            return new Promise((resolve, _) => {
+
+                const suspensId = setInterval(() => {
+                    suspensPoints += ".";
+
+                    this.#deletePrevLine(1);
+                    console.info(`${this.#colorize(`${this.#players.get("upperPlayer").getName()} is playing` + suspensPoints, "white", true)}`)
+                }, milisecondsSpeed);
+
+                setTimeout(() => {
+                    clearInterval(suspensId);
+                    this.#turnCount++;
+
+                    resolve("secret5yzdirjinqaorq0ox1tf383nb3xr");
+
+                }, milisecondsSpeed * 4)
+            }) as unknown as Slot
+
+        } else {
+
+            // Maximum points move
+            // aka Best move
+            let pointsSimulation = [];
+            let possibleSlot = [];
+
+            for (const slot of botBoard) {
+
+                const turnOrderSimulation = this.#getTurnOrderFrom(slot, "saw");
+                let seedsNumber = this.#gameBoard.get(slot)!;
+
+                if (seedsNumber == 0) {
+                    pointsSimulation.push(0);
+                    continue;
+                };
+                if (seedsNumber >= 12) seedsNumber++;
+
+                possibleSlot.push(slot);
+                const finishingSlot = turnOrderSimulation[seedsNumber - 1 % 12];
+
+                if (botBoard.includes(finishingSlot)) {
+                    pointsSimulation.push(0);
+                    continue;
+                };
+
+                //Move possible, check harvest simulation
+                const harvestOrderSimulation = this.#getTurnOrderFrom(finishingSlot, "harvest");
+                let simulatePoints = 0;
+
+                for (const harvestSlot of harvestOrderSimulation) {
+                    const value = this.#gameBoard.get(harvestSlot)!;
+                    if (value < 4 && value != 0) {
+                        simulatePoints += value;
+                    } else {
+                        break;
+                    }
+                }
+                pointsSimulation.push(simulatePoints);
+            }
+
+            const worstMoveIndex = pointsSimulation.indexOf(Math.min(...pointsSimulation));
+            const bestMoveIndex = pointsSimulation.indexOf(Math.max(...pointsSimulation));
+            const rndNum = Math.floor(Math.random() * possibleSlot.length);
+
+            const botAnswer = bestMoveIndex == worstMoveIndex ? possibleSlot[rndNum] : botBoard[bestMoveIndex];
+
+            // === DISPLAY
+            let suspensPoints = "";
+            console.info();
+            console.info(`${this.#colorize(`${this.#players.get("upperPlayer").getName()} is playing`, "white", true)}`);
+
+            const suspensId = setInterval(() => {
+                suspensPoints += ".";
+
+                this.#deletePrevLine(1);
+                console.info(`${this.#colorize(`${this.#players.get("upperPlayer").getName()} is playing` + suspensPoints, "white", true)}`)
+            }, milisecondsSpeed);
+            // == END DISPLAY ==
+
+            return new Promise((resolve, _) => {
+                setTimeout(() => {
+                    clearInterval(suspensId);
+                    resolve(botAnswer);
+
+                }, milisecondsSpeed * 4)
+            }) as unknown as Slot
+        }
     }
 
     #playerMove() {
@@ -161,6 +266,118 @@ class Awale {
                 });
             }) as unknown as Slot
         }
+    }
+
+    #saw(slot: Slot, player: Player): boolean {
+
+        let seedsNumber = this.#gameBoard.get(slot);
+
+        if (!seedsNumber) {
+            this.#display();
+
+            this.#deletePrevLine(2);
+
+            console.error(`${this.#colorize(slot, "red", true)}\ is an empty slot!`);
+            console.info();
+
+            return false
+        }
+        this.#gameBoard.set(slot, 0);
+
+        const sawOrder = this.#getTurnOrderFrom(slot, "saw");
+
+        // Actual seed distribution
+        for (let i = 0; i < seedsNumber; i++) {
+
+            const key = sawOrder[i % sawOrder.length];
+
+            if (key == slot) {
+                seedsNumber++;
+                continue;
+
+            } else {
+                let value = this.#gameBoard.get(key)!;
+                this.#gameBoard.set(key, value += 1);
+            }
+        }
+
+        // Check for last slot and possible Harvest
+        const lastSlotKey = sawOrder[(seedsNumber - 1) % sawOrder.length];
+        const lastSlotValue = this.#gameBoard.get(lastSlotKey)! - 1;
+
+        if (lastSlotValue <= 2
+            && lastSlotValue > 0
+            && !player.getBoard()?.includes(lastSlotKey)
+        ) {
+            const harvestValue = this.#harvest(lastSlotKey, player);
+
+            this.#display([slot, lastSlotKey]);
+            this.#deletePrevLine(3);
+
+            console.info(
+                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
+            );
+            console.info(`/!\\ ${this.#colorize("HARVEST TIME", "magenta", true)} on slot ${this.#colorize(lastSlotKey, "magenta", true)} /!\\ ${this.#colorize("+" + harvestValue, "yellow", true)} points!`);
+
+        } else {
+            this.#display([slot]);
+            this.#deletePrevLine(2);
+
+            console.info(
+                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
+            );
+        }
+
+        this.#turnCount++;
+
+        console.info();
+        return true
+    }
+
+    #harvest(slot: Slot, player: Player): number {
+
+        const currentPoints = player.getScore();
+        const harvestOrder = this.#getTurnOrderFrom(slot, "harvest");
+
+        for (const slot of harvestOrder) {
+            if (this.#gameBoard.get(slot)! > 3
+                || player.getBoard().includes(slot)) {
+                break;
+            }
+
+            player.addPoints(this.#gameBoard.get(slot) ?? 0);
+            this.#gameBoard.set(slot, 0);
+        }
+        const newPoints = player.getScore();
+
+        return newPoints - currentPoints;
+    }
+
+    #askPlayerName(side: "upper" | "lower"): string {
+        return new Promise((resolve, _) => {
+            rl.question(`Choose a player name for the \x1b[33m${side}\x1b[0m board: `, (answer) => {
+                resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
+            });
+        }) as unknown as string;
+    }
+
+    async #definePlayers(singlePlayerMode: boolean) {
+
+        if (singlePlayerMode) {
+            // BOT creation
+            const botNames = ["R2-D2", "Optimus Prime", "Atlas", "Wall-E", "Ava", "Ultron"];
+            const rndBotName = botNames[Math.floor(Math.random() * botNames.length)]
+            const theBot = new Player(rndBotName + " 🤖", this.#sides.upperBoard);
+            this.#players.set("upperPlayer", theBot);
+
+        } else {
+
+            const upperPlayer = await this.#askPlayerName("upper");
+            this.#players.set("upperPlayer", new Player(upperPlayer, this.#sides.upperBoard));
+        }
+
+        const lowerPlayer = await this.#askPlayerName("lower");
+        this.#players.set("lowerPlayer", new Player(lowerPlayer, this.#sides.lowerBoard));
     }
 
     #display(slotToUpdate?: Slot[]): void {
@@ -272,6 +489,31 @@ class Awale {
         }
     }
 
+    async #isSinglePlayer() {
+
+        let errorMsg = "";
+        while (true) {
+
+            console.info(errorMsg);
+
+            const yesNo = await new Promise((resolve, reject) => {
+                rl.question(`Do you want to play in a SinglePlayer mode? (y/n) `, (answer) => {
+                    resolve(answer.trim().toUpperCase())
+                })
+            }) as unknown as string
+
+            if (yesNo == 'Y') return true;
+            if (yesNo == 'N') return false;
+
+            errorMsg = this.#colorize(yesNo.length > 5 ? yesNo.toUpperCase().slice(0, 3) + '...' : yesNo.trim().toUpperCase(), "red");
+            errorMsg += ' -> is not a valid answer...'
+
+            this.#deletePrevLine(3);
+
+            continue;
+        }
+    }
+
     #isGameOver(): boolean {
 
         if (this.#isSideEmpty(this.#sides.upperBoard)
@@ -292,92 +534,6 @@ class Awale {
             }
         }
         return true
-    }
-
-    #saw(slot: Slot, player: Player): boolean {
-
-        let seedsNumber = this.#gameBoard.get(slot);
-
-        if (!seedsNumber) {
-            this.#display();
-
-            this.#deletePrevLine(2);
-
-            console.error(`${this.#colorize(slot, "red", true)}\ is an empty slot!`);
-            console.info();
-
-            return false
-        }
-        this.#gameBoard.set(slot, 0);
-
-        const sawOrder = this.#getTurnOrderFrom(slot, "saw");
-
-        // Actual seed distribution
-        for (let i = 0; i < seedsNumber; i++) {
-
-            const key = sawOrder[i % sawOrder.length];
-
-            if (key == slot) {
-                seedsNumber++;
-                continue;
-
-            } else {
-                let value = this.#gameBoard.get(key)!;
-                this.#gameBoard.set(key, value += 1);
-            }
-        }
-
-        // Check for last slot and possible Harvest
-        const lastSlotKey = sawOrder[(seedsNumber - 1) % sawOrder.length];
-        const lastSlotValue = this.#gameBoard.get(lastSlotKey)! - 1;
-
-
-        if (lastSlotValue <= 2
-            && lastSlotValue > 0
-            && !player.getBoard()?.includes(lastSlotKey)
-        ) {
-            const harvestValue = this.#harvest(lastSlotKey, player);
-
-            this.#display([slot, lastSlotKey]);
-            this.#deletePrevLine(3);
-
-            console.info(
-                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
-            );
-            console.info(`/!\\ ${this.#colorize("HARVEST TIME", "magenta", true)} on slot ${this.#colorize(lastSlotKey, "magenta", true)} /!\\ ${this.#colorize("+" + harvestValue, "yellow", true)} points!`);
-
-        } else {
-            this.#display([slot]);
-            this.#deletePrevLine(2);
-
-            console.info(
-                `Player ${player.getName()} saw on slot ${this.#colorize(slot, "cyan", true)}.`
-            );
-        }
-
-        this.#turnCount++;
-
-        console.info();
-        return true
-    }
-
-    #harvest(slot: Slot, player: Player): number {
-
-        const currentPoints = player.getScore();
-        const harvestOrder = this.#getTurnOrderFrom(slot, "harvest");
-
-        for (const slot of harvestOrder) {
-            if (this.#gameBoard.get(slot)! > 3
-                || player.getBoard().includes(slot)) {
-                break;
-            }
-
-            player.addPoints(this.#gameBoard.get(slot) ?? 0);
-            this.#gameBoard.set(slot, 0);
-        }
-        const newPoints = player.getScore();
-
-        return newPoints - currentPoints;
     }
 
     #getCurrentPlayer(): Player {
@@ -420,7 +576,7 @@ class Player {
     }
 
     public displayScore(): void {
-        console.info(`${this.#isWinning ? "👑 " : "   "}${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score ? 's' : ''}!`);
+        console.info(`${this.#isWinning ? "👑 " : "   "}${this.#name} has \x1b[33m${this.#score}\x1b[0m point${this.#score > 1 ? 's' : ''}!`);
     }
 
     public getName(): string {
