@@ -42,7 +42,7 @@ var rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-var _gameBoard, _sides, _players, _turnCount, _turnArray, _Awale_instances, definePlayers_fn, askPlayerName_fn, playerMove_fn, display_fn, displayRules_fn, displayPlayersScore_fn, displayBoard_fn, colorize_fn, deletePrevLine_fn, isGameOver_fn, isSideEmpty_fn, saw_fn, harvest_fn, getCurrentPlayer_fn, getTurnOrderFrom_fn;
+var _gameBoard, _sides, _players, _turnCount, _turnArray, _Awale_instances, botMove_fn, playerMove_fn, saw_fn, harvest_fn, askPlayerName_fn, definePlayers_fn, display_fn, displayRules_fn, displayPlayersScore_fn, displayBoard_fn, colorize_fn, deletePrevLine_fn, isSinglePlayer_fn, isGameOver_fn, isSideEmpty_fn, getCurrentPlayer_fn, getTurnOrderFrom_fn;
 var Awale = class {
   constructor() {
     __privateAdd(this, _Awale_instances);
@@ -80,11 +80,30 @@ var Awale = class {
       process.stdout.write("\x1Bc");
       console.info(`- --===== ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "Awale Game", "white")} =====-- -`);
       console.info();
-      yield __privateMethod(this, _Awale_instances, definePlayers_fn).call(this);
+      const isSinglePlayer = yield __privateMethod(this, _Awale_instances, isSinglePlayer_fn).call(this);
+      yield __privateMethod(this, _Awale_instances, definePlayers_fn).call(this, isSinglePlayer);
+      let consecutiveBotMove = 0;
       __privateMethod(this, _Awale_instances, display_fn).call(this);
       while (true) {
-        const playerInput = yield __privateMethod(this, _Awale_instances, playerMove_fn).call(this);
+        const playerRole = __privateGet(this, _turnArray)[__privateGet(this, _turnCount) % 2];
+        if (playerRole == "upperPlayer" && isSinglePlayer) {
+          const theBot = __privateMethod(this, _Awale_instances, getCurrentPlayer_fn).call(this);
+          const theBotMove = yield __privateMethod(this, _Awale_instances, botMove_fn).call(this, 400);
+          __privateMethod(this, _Awale_instances, display_fn).call(this);
+          __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
+          if (theBotMove === "secret5yzdirjinqaorq0ox1tf383nb3xr") {
+            console.info();
+            console.info();
+            continue;
+          }
+          __privateMethod(this, _Awale_instances, saw_fn).call(this, theBotMove, theBot);
+          if (__privateMethod(this, _Awale_instances, isGameOver_fn).call(this, consecutiveBotMove++ > 3 ? true : false)) {
+            break;
+          }
+          continue;
+        }
         const currentPlayer = __privateMethod(this, _Awale_instances, getCurrentPlayer_fn).call(this);
+        const playerInput = yield __privateMethod(this, _Awale_instances, playerMove_fn).call(this);
         if (!((_a = currentPlayer.getBoard()) == null ? void 0 : _a.includes(playerInput))) {
           __privateMethod(this, _Awale_instances, display_fn).call(this);
           __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
@@ -102,6 +121,7 @@ var Awale = class {
           continue;
         }
         __privateMethod(this, _Awale_instances, saw_fn).call(this, playerInput, currentPlayer);
+        consecutiveBotMove = 0;
         if (__privateMethod(this, _Awale_instances, isGameOver_fn).call(this)) {
           break;
         }
@@ -121,20 +141,74 @@ _players = new WeakMap();
 _turnCount = new WeakMap();
 _turnArray = new WeakMap();
 _Awale_instances = new WeakSet();
-definePlayers_fn = function() {
-  return __async(this, null, function* () {
-    const upperPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "upper");
-    __privateGet(this, _players).set("upperPlayer", new Player(upperPlayer, __privateGet(this, _sides).upperBoard));
-    const lowerPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "lower");
-    __privateGet(this, _players).set("lowerPlayer", new Player(lowerPlayer, __privateGet(this, _sides).lowerBoard));
-  });
-};
-askPlayerName_fn = function(side) {
-  return new Promise((resolve, _) => {
-    rl.question(`Choose a player name for the \x1B[33m${side}\x1B[0m board: `, (answer) => {
-      resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
+botMove_fn = function(milisecondsSpeed) {
+  const botBoard = __privateGet(this, _sides).upperBoard;
+  if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, botBoard)) {
+    let suspensPoints = "";
+    console.info();
+    console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, `${__privateGet(this, _players).get("upperPlayer").getName()} is playing`, "white", true)}`);
+    return new Promise((resolve, _) => {
+      const suspensId = setInterval(() => {
+        suspensPoints += ".";
+        __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 1);
+        console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, `${__privateGet(this, _players).get("upperPlayer").getName()} is playing` + suspensPoints, "white", true)}`);
+      }, milisecondsSpeed);
+      setTimeout(() => {
+        clearInterval(suspensId);
+        __privateWrapper(this, _turnCount)._++;
+        resolve("secret5yzdirjinqaorq0ox1tf383nb3xr");
+      }, milisecondsSpeed * 4);
     });
-  });
+  } else {
+    let pointsSimulation = [];
+    let possibleSlot = [];
+    for (const slot of botBoard) {
+      const turnOrderSimulation = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "saw");
+      let seedsNumber = __privateGet(this, _gameBoard).get(slot);
+      if (seedsNumber == 0) {
+        pointsSimulation.push(0);
+        continue;
+      }
+      ;
+      if (seedsNumber >= 12) seedsNumber++;
+      possibleSlot.push(slot);
+      const finishingSlot = turnOrderSimulation[seedsNumber - 1 % 12];
+      if (botBoard.includes(finishingSlot)) {
+        pointsSimulation.push(0);
+        continue;
+      }
+      ;
+      const harvestOrderSimulation = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, finishingSlot, "harvest");
+      let simulatePoints = 0;
+      for (const harvestSlot of harvestOrderSimulation) {
+        const value = __privateGet(this, _gameBoard).get(harvestSlot);
+        if (value < 4 && value != 0) {
+          simulatePoints += value;
+        } else {
+          break;
+        }
+      }
+      pointsSimulation.push(simulatePoints);
+    }
+    const worstMoveIndex = pointsSimulation.indexOf(Math.min(...pointsSimulation));
+    const bestMoveIndex = pointsSimulation.indexOf(Math.max(...pointsSimulation));
+    const rndNum = Math.floor(Math.random() * possibleSlot.length);
+    const botAnswer = bestMoveIndex == worstMoveIndex ? possibleSlot[rndNum] : botBoard[bestMoveIndex];
+    let suspensPoints = "";
+    console.info();
+    console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, `${__privateGet(this, _players).get("upperPlayer").getName()} is playing`, "white", true)}`);
+    const suspensId = setInterval(() => {
+      suspensPoints += ".";
+      __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 1);
+      console.info(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, `${__privateGet(this, _players).get("upperPlayer").getName()} is playing` + suspensPoints, "white", true)}`);
+    }, milisecondsSpeed);
+    return new Promise((resolve, _) => {
+      setTimeout(() => {
+        clearInterval(suspensId);
+        resolve(botAnswer);
+      }, milisecondsSpeed * 4);
+    });
+  }
 };
 playerMove_fn = function() {
   const currentPlayer = __privateMethod(this, _Awale_instances, getCurrentPlayer_fn).call(this);
@@ -163,6 +237,85 @@ playerMove_fn = function() {
       });
     });
   }
+};
+saw_fn = function(slot, player) {
+  var _a;
+  let seedsNumber = __privateGet(this, _gameBoard).get(slot);
+  if (!seedsNumber) {
+    __privateMethod(this, _Awale_instances, display_fn).call(this);
+    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
+    console.error(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "red", true)} is an empty slot!`);
+    console.info();
+    return false;
+  }
+  __privateGet(this, _gameBoard).set(slot, 0);
+  const sawOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "saw");
+  for (let i = 0; i < seedsNumber; i++) {
+    const key = sawOrder[i % sawOrder.length];
+    if (key == slot) {
+      seedsNumber++;
+      continue;
+    } else {
+      let value = __privateGet(this, _gameBoard).get(key);
+      __privateGet(this, _gameBoard).set(key, value += 1);
+    }
+  }
+  const lastSlotKey = sawOrder[(seedsNumber - 1) % sawOrder.length];
+  const lastSlotValue = __privateGet(this, _gameBoard).get(lastSlotKey) - 1;
+  if (lastSlotValue <= 2 && lastSlotValue > 0 && !((_a = player.getBoard()) == null ? void 0 : _a.includes(lastSlotKey))) {
+    const harvestValue = __privateMethod(this, _Awale_instances, harvest_fn).call(this, lastSlotKey, player);
+    __privateMethod(this, _Awale_instances, display_fn).call(this, [slot, lastSlotKey]);
+    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 3);
+    console.info(
+      `Player ${player.getName()} saw on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "cyan", true)}.`
+    );
+    console.info(`/!\\ ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "HARVEST TIME", "magenta", true)} on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, lastSlotKey, "magenta", true)} /!\\ ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "+" + harvestValue, "yellow", true)} points!`);
+  } else {
+    __privateMethod(this, _Awale_instances, display_fn).call(this, [slot]);
+    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
+    console.info(
+      `Player ${player.getName()} saw on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "cyan", true)}.`
+    );
+  }
+  __privateWrapper(this, _turnCount)._++;
+  console.info();
+  return true;
+};
+harvest_fn = function(slot, player) {
+  var _a;
+  const currentPoints = player.getScore();
+  const harvestOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "harvest");
+  for (const slot2 of harvestOrder) {
+    if (__privateGet(this, _gameBoard).get(slot2) > 3 || player.getBoard().includes(slot2)) {
+      break;
+    }
+    player.addPoints((_a = __privateGet(this, _gameBoard).get(slot2)) != null ? _a : 0);
+    __privateGet(this, _gameBoard).set(slot2, 0);
+  }
+  const newPoints = player.getScore();
+  return newPoints - currentPoints;
+};
+askPlayerName_fn = function(side) {
+  return new Promise((resolve, _) => {
+    rl.question(`Choose a player name for the \x1B[33m${side}\x1B[0m board: `, (answer) => {
+      resolve(answer.length < 20 ? answer.trim() : answer.trim().slice(0, 16) + "...");
+    });
+  });
+};
+definePlayers_fn = function(singlePlayerMode) {
+  return __async(this, null, function* () {
+    if (singlePlayerMode) {
+      const botNames = ["R2-D2", "Optimus Prime", "Atlas", "Wall-E", "Ava", "Ultron"];
+      const rndBotName = botNames[Math.floor(Math.random() * botNames.length)];
+      const theBot = new Player(rndBotName + " \u{1F916}", __privateGet(this, _sides).upperBoard);
+      __privateGet(this, _players).set("upperPlayer", theBot);
+    } else {
+      const upperPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "upper");
+      __privateGet(this, _players).set("upperPlayer", new Player(upperPlayer, __privateGet(this, _sides).upperBoard));
+    }
+    const lowerPlayer = yield __privateMethod(this, _Awale_instances, askPlayerName_fn).call(this, "lower");
+    __privateGet(this, _players).set("lowerPlayer", new Player(lowerPlayer, __privateGet(this, _sides).lowerBoard));
+  });
 };
 display_fn = function(slotToUpdate) {
   process.stdout.write("\x1Bc");
@@ -247,10 +400,39 @@ deletePrevLine_fn = function(num) {
     process.stdout.write("\x1B[1A\x1B[2K");
   }
 };
-isGameOver_fn = function() {
+isSinglePlayer_fn = function() {
+  return __async(this, null, function* () {
+    let errorMsg = "";
+    while (true) {
+      console.info(errorMsg);
+      const yesNo = yield new Promise((resolve, reject) => {
+        rl.question(`Do you want to play in a SinglePlayer mode? (y/n) `, (answer) => {
+          resolve(answer.trim().toUpperCase());
+        });
+      });
+      if (yesNo == "Y") return true;
+      if (yesNo == "N") return false;
+      errorMsg = __privateMethod(this, _Awale_instances, colorize_fn).call(this, yesNo.length > 5 ? yesNo.toUpperCase().slice(0, 3) + "..." : yesNo.trim().toUpperCase(), "red");
+      errorMsg += " -> is not a valid answer...";
+      __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 3);
+      continue;
+    }
+  });
+};
+isGameOver_fn = function(forcedTrue = false) {
   if (__privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).upperBoard) && __privateMethod(this, _Awale_instances, isSideEmpty_fn).call(this, __privateGet(this, _sides).lowerBoard)) {
     console.info("G A M E  O V E R");
     console.info("The board is finally empty!");
+    return true;
+  }
+  let boardValue = [];
+  for (const [key, val] of __privateGet(this, _gameBoard)) {
+    boardValue.push(val);
+  }
+  const reducedBoard = boardValue.reduce((a, b) => a + b);
+  if (reducedBoard <= 3 || forcedTrue) {
+    console.info("G A M E  O V E R");
+    console.info(`\x1B[3m(by indetermination)\x1B[0m`);
     return true;
   }
   return false;
@@ -262,63 +444,6 @@ isSideEmpty_fn = function(side) {
     }
   }
   return true;
-};
-saw_fn = function(slot, player) {
-  var _a;
-  let seedsNumber = __privateGet(this, _gameBoard).get(slot);
-  if (!seedsNumber) {
-    __privateMethod(this, _Awale_instances, display_fn).call(this);
-    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
-    console.error(`${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "red", true)} is an empty slot!`);
-    console.info();
-    return false;
-  }
-  __privateGet(this, _gameBoard).set(slot, 0);
-  const sawOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "saw");
-  for (let i = 0; i < seedsNumber; i++) {
-    const key = sawOrder[i % sawOrder.length];
-    if (key == slot) {
-      seedsNumber++;
-      continue;
-    } else {
-      let value = __privateGet(this, _gameBoard).get(key);
-      __privateGet(this, _gameBoard).set(key, value += 1);
-    }
-  }
-  const lastSlotKey = sawOrder[(seedsNumber - 1) % sawOrder.length];
-  const lastSlotValue = __privateGet(this, _gameBoard).get(lastSlotKey) - 1;
-  if (lastSlotValue <= 2 && lastSlotValue > 0 && !((_a = player.getBoard()) == null ? void 0 : _a.includes(lastSlotKey))) {
-    const harvestValue = __privateMethod(this, _Awale_instances, harvest_fn).call(this, lastSlotKey, player);
-    __privateMethod(this, _Awale_instances, display_fn).call(this, [slot, lastSlotKey]);
-    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 3);
-    console.info(
-      `Player ${player.getName()} saw on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "cyan", true)}.`
-    );
-    console.info(`/!\\ ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "HARVEST TIME", "magenta", true)} on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, lastSlotKey, "magenta", true)} /!\\ ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, "+" + harvestValue, "yellow", true)} points!`);
-  } else {
-    __privateMethod(this, _Awale_instances, display_fn).call(this, [slot]);
-    __privateMethod(this, _Awale_instances, deletePrevLine_fn).call(this, 2);
-    console.info(
-      `Player ${player.getName()} saw on slot ${__privateMethod(this, _Awale_instances, colorize_fn).call(this, slot, "cyan", true)}.`
-    );
-  }
-  __privateWrapper(this, _turnCount)._++;
-  console.info();
-  return true;
-};
-harvest_fn = function(slot, player) {
-  var _a;
-  const currentPoints = player.getScore();
-  const harvestOrder = __privateMethod(this, _Awale_instances, getTurnOrderFrom_fn).call(this, slot, "harvest");
-  for (const slot2 of harvestOrder) {
-    if (__privateGet(this, _gameBoard).get(slot2) > 3 || player.getBoard().includes(slot2)) {
-      break;
-    }
-    player.addPoints((_a = __privateGet(this, _gameBoard).get(slot2)) != null ? _a : 0);
-    __privateGet(this, _gameBoard).set(slot2, 0);
-  }
-  const newPoints = player.getScore();
-  return newPoints - currentPoints;
 };
 getCurrentPlayer_fn = function() {
   const playerRole = __privateGet(this, _turnArray)[__privateGet(this, _turnCount) % 2];
@@ -353,7 +478,7 @@ var Player = class {
     return __privateGet(this, _score);
   }
   displayScore() {
-    console.info(`${__privateGet(this, _isWinning) ? "\u{1F451} " : "   "}${__privateGet(this, _name)} has \x1B[33m${__privateGet(this, _score)}\x1B[0m point${__privateGet(this, _score) ? "s" : ""}!`);
+    console.info(`${__privateGet(this, _isWinning) ? "\u{1F451} " : "   "}${__privateGet(this, _name)} has \x1B[33m${__privateGet(this, _score)}\x1B[0m point${__privateGet(this, _score) > 1 ? "s" : ""}!`);
   }
   getName() {
     return __privateGet(this, _name);
