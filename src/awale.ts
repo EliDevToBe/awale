@@ -59,6 +59,7 @@ class Awale {
 
         const isSinglePlayer = await this.#isSinglePlayer();
         await this.#definePlayers(isSinglePlayer);
+        let consecutiveBotMove = 0;
 
         this.#display();
 
@@ -66,10 +67,11 @@ class Awale {
 
             const playerRole = this.#turnArray[this.#turnCount % 2];
 
+            // BOT turn
             if (playerRole == "upperPlayer" && isSinglePlayer) {
-                // BOT turn
+
                 const theBot = this.#getCurrentPlayer();
-                const theBotMove = await this.#botMove(375);
+                const theBotMove: Slot = await this.#botMove(400);
 
                 this.#display();
                 this.#deletePrevLine(2);
@@ -82,9 +84,13 @@ class Awale {
 
                 this.#saw(theBotMove, theBot);
 
+                if (this.#isGameOver(consecutiveBotMove++ > 3 ? true : false)) {
+                    break;
+                }
                 continue;
             }
 
+            // Players turns
             const currentPlayer = this.#getCurrentPlayer();
             const playerInput: Slot = await this.#playerMove();
 
@@ -112,6 +118,7 @@ class Awale {
             }
 
             this.#saw(playerInput, currentPlayer);
+            consecutiveBotMove = 0;
 
             if (this.#isGameOver()) {
                 break;
@@ -514,7 +521,7 @@ class Awale {
         }
     }
 
-    #isGameOver(): boolean {
+    #isGameOver(forcedTrue: boolean = false): boolean {
 
         if (this.#isSideEmpty(this.#sides.upperBoard)
             && this.#isSideEmpty(this.#sides.lowerBoard)) {
@@ -530,7 +537,7 @@ class Awale {
         }
         const reducedBoard = boardValue.reduce((a, b) => a + b);
 
-        if (reducedBoard <= 2) {
+        if (reducedBoard <= 3 || forcedTrue) {
             console.info("G A M E  O V E R");
             console.info(`\x1b[3m(by indetermination)\x1b[0m`);
             return true
