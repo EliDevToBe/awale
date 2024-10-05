@@ -523,6 +523,19 @@ class Awale {
             console.info("The board is finally empty!");
             return true
         }
+
+        let boardValue = [];
+        for (const [key, val] of this.#gameBoard) {
+            boardValue.push(val);
+        }
+        const reducedBoard = boardValue.reduce((a, b) => a + b);
+
+        if (reducedBoard <= 2) {
+            console.info("G A M E  O V E R");
+            console.info(`\x1b[3m(by indetermination)\x1b[0m`);
+            return true
+        }
+
         return false
     }
 
